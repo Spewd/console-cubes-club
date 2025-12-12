@@ -73,15 +73,16 @@ export const TetrisBoard = ({ board, currentPiece, ghostPosition }: TetrisBoardP
         <div 
           className="grid gap-[1px]"
           style={{ 
-            gridTemplateColumns: `repeat(${BOARD_WIDTH}, 1fr)`,
-            gridTemplateRows: `repeat(${BOARD_HEIGHT}, 1fr)`,
+            gridTemplateColumns: `repeat(${BOARD_WIDTH}, minmax(0, 1fr))`,
+            width: `${BOARD_WIDTH * 24}px`,
+            height: `${BOARD_HEIGHT * 24}px`,
           }}
         >
           {displayBoard.flat().map((item, index) => (
             <div
               key={index}
               className={cn(
-                'aspect-square',
+                'w-full h-full',
                 item.cell 
                   ? item.isGhost
                     ? `${GHOST_COLORS[item.cell]} rounded-[2px]`
