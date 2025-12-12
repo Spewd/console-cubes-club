@@ -9,11 +9,11 @@ const Game = () => {
 
   return (
     <ArcadeCabinet>
-      <div className="space-y-4">
+      <div>
         <Button 
           variant="ghost" 
           onClick={() => navigate('/')}
-          className="mb-4"
+          className="mb-4 text-muted-foreground hover:text-primary"
         >
           <ArrowLeft className="w-4 h-4 mr-2" />
           BACK TO MENU
