@@ -1,96 +1,88 @@
+@import url("https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap");
+@import url("https://fonts.googleapis.com/css2?family=VT323&display=swap");
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
-/* Definition of the design system. All colors, gradients, fonts, etc should be defined here. 
-All colors MUST be HSL.
-*/
+/* Retro Arcade Tetris Design System */
 
 @layer base {
   :root {
-    --background: 0 0% 100%;
-    --foreground: 222.2 84% 4.9%;
+    --background: 220 20% 10%;
+    --foreground: 120 100% 50%;
 
-    --card: 0 0% 100%;
-    --card-foreground: 222.2 84% 4.9%;
+    --card: 220 25% 8%;
+    --card-foreground: 120 100% 50%;
 
-    --popover: 0 0% 100%;
-    --popover-foreground: 222.2 84% 4.9%;
+    --popover: 220 25% 12%;
+    --popover-foreground: 120 100% 50%;
 
-    --primary: 222.2 47.4% 11.2%;
-    --primary-foreground: 210 40% 98%;
+    --primary: 120 100% 50%;
+    --primary-foreground: 220 20% 10%;
 
-    --secondary: 210 40% 96.1%;
-    --secondary-foreground: 222.2 47.4% 11.2%;
+    --secondary: 280 100% 60%;
+    --secondary-foreground: 0 0% 100%;
 
-    --muted: 210 40% 96.1%;
-    --muted-foreground: 215.4 16.3% 46.9%;
+    --muted: 220 20% 20%;
+    --muted-foreground: 120 50% 40%;
 
-    --accent: 210 40% 96.1%;
-    --accent-foreground: 222.2 47.4% 11.2%;
+    --accent: 45 100% 50%;
+    --accent-foreground: 220 20% 10%;
 
-    --destructive: 0 84.2% 60.2%;
-    --destructive-foreground: 210 40% 98%;
+    --destructive: 0 100% 50%;
+    --destructive-foreground: 0 0% 100%;
 
-    --border: 214.3 31.8% 91.4%;
-    --input: 214.3 31.8% 91.4%;
-    --ring: 222.2 84% 4.9%;
+    --border: 120 100% 50%;
+    --input: 120 100% 30%;
+    --ring: 120 100% 50%;
 
-    --radius: 0.5rem;
+    --radius: 0rem;
 
-    --sidebar-background: 0 0% 98%;
+    /* Tetris block colors */
+    --tetris-i: 180 100% 50%;
+    --tetris-o: 45 100% 50%;
+    --tetris-t: 280 100% 60%;
+    --tetris-s: 120 100% 45%;
+    --tetris-z: 0 100% 50%;
+    --tetris-j: 220 100% 55%;
+    --tetris-l: 30 100% 50%;
 
-    --sidebar-foreground: 240 5.3% 26.1%;
+    /* CRT effects */
+    --crt-glow: 120 100% 50%;
+    --screen-bg: 220 30% 5%;
+    --cabinet-bg: 25 30% 15%;
+    --cabinet-accent: 25 40% 25%;
 
-    --sidebar-primary: 240 5.9% 10%;
+    --sidebar-background: 220 25% 8%;
+    --sidebar-foreground: 120 100% 50%;
+    --sidebar-primary: 120 100% 50%;
+    --sidebar-primary-foreground: 220 20% 10%;
+    --sidebar-accent: 280 100% 60%;
+    --sidebar-accent-foreground: 0 0% 100%;
+    --sidebar-border: 120 100% 50%;
+    --sidebar-ring: 120 100% 50%;
 
-    --sidebar-primary-foreground: 0 0% 98%;
+    --chart-1: 180 100% 50%;
+    --chart-2: 120 100% 45%;
+    --chart-3: 280 100% 60%;
+    --chart-4: 45 100% 50%;
+    --chart-5: 0 100% 50%;
 
-    --sidebar-accent: 240 4.8% 95.9%;
+    --font-arcade: 'Press Start 2P', cursive;
+    --font-retro: 'VT323', monospace;
 
-    --sidebar-accent-foreground: 240 5.9% 10%;
-
-    --sidebar-border: 220 13% 91%;
-
-    --sidebar-ring: 217.2 91.2% 59.8%;
-  }
-
-  .dark {
-    --background: 222.2 84% 4.9%;
-    --foreground: 210 40% 98%;
-
-    --card: 222.2 84% 4.9%;
-    --card-foreground: 210 40% 98%;
-
-    --popover: 222.2 84% 4.9%;
-    --popover-foreground: 210 40% 98%;
-
-    --primary: 210 40% 98%;
-    --primary-foreground: 222.2 47.4% 11.2%;
-
-    --secondary: 217.2 32.6% 17.5%;
-    --secondary-foreground: 210 40% 98%;
-
-    --muted: 217.2 32.6% 17.5%;
-    --muted-foreground: 215 20.2% 65.1%;
-
-    --accent: 217.2 32.6% 17.5%;
-    --accent-foreground: 210 40% 98%;
-
-    --destructive: 0 62.8% 30.6%;
-    --destructive-foreground: 210 40% 98%;
-
-    --border: 217.2 32.6% 17.5%;
-    --input: 217.2 32.6% 17.5%;
-    --ring: 212.7 26.8% 83.9%;
-    --sidebar-background: 240 5.9% 10%;
-    --sidebar-foreground: 240 4.8% 95.9%;
-    --sidebar-primary: 224.3 76.3% 48%;
-    --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 240 3.7% 15.9%;
-    --sidebar-accent-foreground: 240 4.8% 95.9%;
-    --sidebar-border: 240 3.7% 15.9%;
-    --sidebar-ring: 217.2 91.2% 59.8%;
+    --shadow-neon: 0 0 10px hsl(120 100% 50% / 0.8), 0 0 20px hsl(120 100% 50% / 0.6), 0 0 30px hsl(120 100% 50% / 0.4);
+    --shadow-neon-purple: 0 0 10px hsl(280 100% 60% / 0.8), 0 0 20px hsl(280 100% 60% / 0.6), 0 0 30px hsl(280 100% 60% / 0.4);
+    --shadow-neon-yellow: 0 0 10px hsl(45 100% 50% / 0.8), 0 0 20px hsl(45 100% 50% / 0.6), 0 0 30px hsl(45 100% 50% / 0.4);
+    
+    --shadow-2xs: 1px 1px 0px 0px hsl(120 100% 50%);
+    --shadow-xs: 2px 2px 0px 0px hsl(120 100% 50%);
+    --shadow-sm: 3px 3px 0px 0px hsl(120 100% 50%);
+    --shadow: 5px 5px 0px 0px hsl(120 100% 50%);
+    --shadow-md: 8px 8px 0px 0px hsl(120 100% 50%);
+    --shadow-lg: 12px 12px 0px 0px hsl(120 100% 50%);
+    --shadow-xl: 16px 16px 0px 0px hsl(120 100% 50%);
+    --shadow-2xl: 24px 24px 0px 0px hsl(120 100% 50%);
   }
 }
 
@@ -101,5 +93,124 @@ All colors MUST be HSL.
 
   body {
     @apply bg-background text-foreground;
+    font-family: var(--font-retro);
   }
+
+  h1, h2, h3, h4, h5, h6 {
+    font-family: var(--font-arcade);
+  }
+}
+
+/* CRT Screen Effect */
+@layer utilities {
+  .crt-screen {
+    position: relative;
+    background: hsl(var(--screen-bg));
+    overflow: hidden;
+  }
+
+  .crt-screen::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(
+      transparent 50%,
+      hsl(0 0% 0% / 0.1) 50%
+    );
+    background-size: 100% 4px;
+    pointer-events: none;
+    z-index: 10;
+  }
+
+  .crt-screen::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background: radial-gradient(
+      ellipse at center,
+      transparent 0%,
+      hsl(0 0% 0% / 0.3) 100%
+    );
+    pointer-events: none;
+    z-index: 10;
+  }
+
+  .neon-glow {
+    text-shadow: var(--shadow-neon);
+  }
+
+  .neon-glow-purple {
+    text-shadow: var(--shadow-neon-purple);
+  }
+
+  .neon-glow-yellow {
+    text-shadow: var(--shadow-neon-yellow);
+  }
+
+  .arcade-cabinet {
+    background: linear-gradient(
+      180deg,
+      hsl(var(--cabinet-accent)) 0%,
+      hsl(var(--cabinet-bg)) 50%,
+      hsl(25 20% 10%) 100%
+    );
+  }
+
+  .pixel-border {
+    border: 4px solid;
+    box-shadow: 
+      inset -4px -4px 0px 0px hsl(0 0% 0% / 0.3),
+      inset 4px 4px 0px 0px hsl(0 0% 100% / 0.1);
+  }
+
+  .arcade-button {
+    @apply transition-all duration-75;
+    box-shadow: 
+      0 6px 0 hsl(0 0% 0% / 0.5),
+      0 8px 10px hsl(0 0% 0% / 0.3);
+  }
+
+  .arcade-button:active {
+    transform: translateY(4px);
+    box-shadow: 
+      0 2px 0 hsl(0 0% 0% / 0.5),
+      0 4px 6px hsl(0 0% 0% / 0.3);
+  }
+
+  .tetris-block {
+    border: 2px solid;
+    box-shadow: 
+      inset -2px -2px 0px 0px hsl(0 0% 0% / 0.4),
+      inset 2px 2px 0px 0px hsl(0 0% 100% / 0.3);
+  }
+}
+
+/* Animations */
+@keyframes blink {
+  0%, 50% { opacity: 1; }
+  51%, 100% { opacity: 0; }
+}
+
+@keyframes pulse-neon {
+  0%, 100% { 
+    text-shadow: var(--shadow-neon);
+    opacity: 1;
+  }
+  50% { 
+    text-shadow: 0 0 5px hsl(120 100% 50% / 0.5);
+    opacity: 0.8;
+  }
+}
+
+@keyframes scanline {
+  0% { transform: translateY(-100%); }
+  100% { transform: translateY(100%); }
+}
+
+.animate-blink {
+  animation: blink 1s infinite;
+}
+
+.animate-pulse-neon {
+  animation: pulse-neon 2s ease-in-out infinite;
 }
