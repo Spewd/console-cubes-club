@@ -38,51 +38,52 @@
 
     --radius: 0rem;
 
-    /* Tetris block colors */
-    --tetris-i: 180 100% 50%;
-    --tetris-o: 45 100% 50%;
-    --tetris-t: 280 100% 60%;
-    --tetris-s: 120 100% 45%;
-    --tetris-z: 0 100% 50%;
-    --tetris-j: 220 100% 55%;
-    --tetris-l: 30 100% 50%;
+    /* Tetris block colors - vibrant neon */
+    --tetris-i: 185 100% 55%;
+    --tetris-o: 50 100% 55%;
+    --tetris-t: 290 100% 65%;
+    --tetris-s: 140 100% 50%;
+    --tetris-z: 0 100% 55%;
+    --tetris-j: 225 100% 60%;
+    --tetris-l: 35 100% 55%;
 
     /* CRT effects */
-    --crt-glow: 120 100% 50%;
-    --screen-bg: 220 30% 5%;
-    --cabinet-bg: 25 30% 15%;
-    --cabinet-accent: 25 40% 25%;
+    --crt-glow: 185 100% 60%;
+    --screen-bg: 220 40% 3%;
+    --cabinet-bg: 240 20% 8%;
+    --cabinet-accent: 240 15% 12%;
 
     --sidebar-background: 220 25% 8%;
-    --sidebar-foreground: 120 100% 50%;
-    --sidebar-primary: 120 100% 50%;
+    --sidebar-foreground: 185 100% 60%;
+    --sidebar-primary: 185 100% 60%;
     --sidebar-primary-foreground: 220 20% 10%;
-    --sidebar-accent: 280 100% 60%;
+    --sidebar-accent: 290 100% 65%;
     --sidebar-accent-foreground: 0 0% 100%;
-    --sidebar-border: 120 100% 50%;
-    --sidebar-ring: 120 100% 50%;
+    --sidebar-border: 185 100% 50%;
+    --sidebar-ring: 185 100% 60%;
 
-    --chart-1: 180 100% 50%;
-    --chart-2: 120 100% 45%;
-    --chart-3: 280 100% 60%;
-    --chart-4: 45 100% 50%;
-    --chart-5: 0 100% 50%;
+    --chart-1: 185 100% 55%;
+    --chart-2: 140 100% 50%;
+    --chart-3: 290 100% 65%;
+    --chart-4: 50 100% 55%;
+    --chart-5: 0 100% 55%;
 
     --font-arcade: 'Press Start 2P', cursive;
     --font-retro: 'VT323', monospace;
 
-    --shadow-neon: 0 0 10px hsl(120 100% 50% / 0.8), 0 0 20px hsl(120 100% 50% / 0.6), 0 0 30px hsl(120 100% 50% / 0.4);
-    --shadow-neon-purple: 0 0 10px hsl(280 100% 60% / 0.8), 0 0 20px hsl(280 100% 60% / 0.6), 0 0 30px hsl(280 100% 60% / 0.4);
-    --shadow-neon-yellow: 0 0 10px hsl(45 100% 50% / 0.8), 0 0 20px hsl(45 100% 50% / 0.6), 0 0 30px hsl(45 100% 50% / 0.4);
+    --shadow-neon: 0 0 10px hsl(185 100% 60% / 0.8), 0 0 20px hsl(185 100% 60% / 0.5), 0 0 40px hsl(185 100% 60% / 0.3);
+    --shadow-neon-purple: 0 0 10px hsl(290 100% 65% / 0.8), 0 0 20px hsl(290 100% 65% / 0.5), 0 0 40px hsl(290 100% 65% / 0.3);
+    --shadow-neon-yellow: 0 0 10px hsl(50 100% 55% / 0.8), 0 0 20px hsl(50 100% 55% / 0.5), 0 0 40px hsl(50 100% 55% / 0.3);
+    --shadow-neon-cyan: 0 0 10px hsl(185 100% 60% / 0.9), 0 0 25px hsl(185 100% 60% / 0.6), 0 0 50px hsl(185 100% 60% / 0.4);
     
-    --shadow-2xs: 1px 1px 0px 0px hsl(120 100% 50%);
-    --shadow-xs: 2px 2px 0px 0px hsl(120 100% 50%);
-    --shadow-sm: 3px 3px 0px 0px hsl(120 100% 50%);
-    --shadow: 5px 5px 0px 0px hsl(120 100% 50%);
-    --shadow-md: 8px 8px 0px 0px hsl(120 100% 50%);
-    --shadow-lg: 12px 12px 0px 0px hsl(120 100% 50%);
-    --shadow-xl: 16px 16px 0px 0px hsl(120 100% 50%);
-    --shadow-2xl: 24px 24px 0px 0px hsl(120 100% 50%);
+    --shadow-2xs: 1px 1px 0px 0px hsl(185 100% 60%);
+    --shadow-xs: 2px 2px 0px 0px hsl(185 100% 60%);
+    --shadow-sm: 3px 3px 0px 0px hsl(185 100% 60%);
+    --shadow: 5px 5px 0px 0px hsl(185 100% 60%);
+    --shadow-md: 8px 8px 0px 0px hsl(185 100% 60%);
+    --shadow-lg: 12px 12px 0px 0px hsl(185 100% 60%);
+    --shadow-xl: 16px 16px 0px 0px hsl(185 100% 60%);
+    --shadow-2xl: 24px 24px 0px 0px hsl(185 100% 60%);
   }
 }
 
@@ -178,10 +179,44 @@
   }
 
   .tetris-block {
-    border: 2px solid;
+    position: relative;
+    border: 1px solid hsl(0 0% 100% / 0.4);
     box-shadow: 
-      inset -2px -2px 0px 0px hsl(0 0% 0% / 0.4),
-      inset 2px 2px 0px 0px hsl(0 0% 100% / 0.3);
+      inset -3px -3px 0px 0px hsl(0 0% 0% / 0.5),
+      inset 3px 3px 0px 0px hsl(0 0% 100% / 0.4),
+      0 0 8px currentColor;
+  }
+
+  .game-board-container {
+    background: linear-gradient(135deg, hsl(220 40% 6%) 0%, hsl(220 50% 3%) 100%);
+    box-shadow: 
+      inset 0 0 60px hsl(185 100% 60% / 0.1),
+      0 0 30px hsl(185 100% 60% / 0.3),
+      0 0 60px hsl(185 100% 60% / 0.1);
+  }
+
+  .game-board-border {
+    border: 3px solid hsl(185 100% 60% / 0.8);
+    box-shadow: 
+      0 0 20px hsl(185 100% 60% / 0.5),
+      0 0 40px hsl(185 100% 60% / 0.3),
+      inset 0 0 20px hsl(185 100% 60% / 0.1);
+  }
+
+  .stats-panel {
+    background: linear-gradient(180deg, hsl(220 30% 8%) 0%, hsl(220 35% 5%) 100%);
+    border: 2px solid hsl(0 0% 100% / 0.2);
+    box-shadow: 
+      inset 0 1px 0 hsl(0 0% 100% / 0.1),
+      0 0 15px hsl(0 0% 0% / 0.5);
+  }
+
+  .stats-panel-accent {
+    background: linear-gradient(180deg, hsl(220 30% 10%) 0%, hsl(220 35% 6%) 100%);
+    border: 2px solid hsl(185 100% 60% / 0.4);
+    box-shadow: 
+      0 0 10px hsl(185 100% 60% / 0.2),
+      inset 0 0 10px hsl(185 100% 60% / 0.05);
   }
 }
 

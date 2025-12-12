@@ -8,8 +8,13 @@ export const MainMenu = () => {
   return (
     <div className="flex flex-col items-center justify-center min-h-[400px] gap-6 p-8">
       <div className="space-y-2 text-center mb-8">
-        <h2 className="font-arcade text-lg text-primary neon-glow">SELECT MODE</h2>
-        <div className="w-32 h-1 bg-primary mx-auto" />
+        <h2 
+          className="font-arcade text-lg text-primary"
+          style={{ textShadow: 'var(--shadow-neon-cyan)' }}
+        >
+          SELECT MODE
+        </h2>
+        <div className="w-32 h-px bg-gradient-to-r from-transparent via-primary to-transparent mx-auto" />
       </div>
 
       <div className="flex flex-col gap-4 w-full max-w-xs">
@@ -43,13 +48,13 @@ export const MainMenu = () => {
           LEADERBOARD
         </Button>
 
-        <div className="border-t-2 border-muted my-4" />
+        <div className="border-t border-muted/30 my-4" />
 
         <Button
           variant="outline"
           size="lg"
           onClick={() => navigate('/login')}
-          className="arcade-button w-full justify-start"
+          className="arcade-button w-full justify-start border-muted-foreground/30 hover:border-primary"
         >
           <LogIn className="w-5 h-5 mr-3" />
           LOGIN / REGISTER
@@ -58,9 +63,9 @@ export const MainMenu = () => {
 
       <div className="mt-8 text-center">
         <p className="font-retro text-muted-foreground text-sm">
-          © 2024 RETRO TETRIS ARCADE
+          © 2024 TETRIS EFFECT EDITION
         </p>
-        <p className="font-retro text-muted-foreground text-xs mt-1">
+        <p className="font-retro text-muted-foreground/50 text-xs mt-1 animate-pulse">
           INSERT COIN TO CONTINUE
         </p>
       </div>
