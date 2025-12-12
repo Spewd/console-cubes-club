@@ -7,13 +7,13 @@ interface TetrisBoardProps {
 }
 
 const BLOCK_COLORS: Record<Exclude<TetrisBlock, null>, string> = {
-  I: 'bg-tetris-i',
-  O: 'bg-tetris-o',
-  T: 'bg-tetris-t',
-  S: 'bg-tetris-s',
-  Z: 'bg-tetris-z',
-  J: 'bg-tetris-j',
-  L: 'bg-tetris-l',
+  I: 'bg-tetris-i shadow-[0_0_12px_hsl(185_100%_55%)]',
+  O: 'bg-tetris-o shadow-[0_0_12px_hsl(50_100%_55%)]',
+  T: 'bg-tetris-t shadow-[0_0_12px_hsl(290_100%_65%)]',
+  S: 'bg-tetris-s shadow-[0_0_12px_hsl(140_100%_50%)]',
+  Z: 'bg-tetris-z shadow-[0_0_12px_hsl(0_100%_55%)]',
+  J: 'bg-tetris-j shadow-[0_0_12px_hsl(225_100%_60%)]',
+  L: 'bg-tetris-l shadow-[0_0_12px_hsl(35_100%_55%)]',
 };
 
 export const TetrisBoard = ({ board, currentPiece }: TetrisBoardProps) => {
@@ -36,23 +36,27 @@ export const TetrisBoard = ({ board, currentPiece }: TetrisBoardProps) => {
   }
 
   return (
-    <div className="crt-screen p-2 border-4 border-primary">
-      <div 
-        className="grid gap-px bg-screen"
-        style={{ 
-          gridTemplateColumns: `repeat(${BOARD_WIDTH}, 1fr)`,
-          gridTemplateRows: `repeat(${BOARD_HEIGHT}, 1fr)`,
-        }}
-      >
-        {displayBoard.flat().map((cell, index) => (
-          <div
-            key={index}
-            className={cn(
-              'aspect-square border border-muted/30',
-              cell ? `${BLOCK_COLORS[cell]} tetris-block` : 'bg-screen'
-            )}
-          />
-        ))}
+    <div className="game-board-border rounded-sm p-1">
+      <div className="game-board-container p-2 rounded-sm">
+        <div 
+          className="grid gap-[1px]"
+          style={{ 
+            gridTemplateColumns: `repeat(${BOARD_WIDTH}, 1fr)`,
+            gridTemplateRows: `repeat(${BOARD_HEIGHT}, 1fr)`,
+          }}
+        >
+          {displayBoard.flat().map((cell, index) => (
+            <div
+              key={index}
+              className={cn(
+                'aspect-square',
+                cell 
+                  ? `${BLOCK_COLORS[cell]} tetris-block rounded-[2px]` 
+                  : 'bg-muted/10 border border-muted/5'
+              )}
+            />
+          ))}
+        </div>
       </div>
     </div>
   );

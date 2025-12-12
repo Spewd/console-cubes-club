@@ -29,24 +29,27 @@ const Login = () => {
         <Button 
           variant="ghost" 
           onClick={() => navigate('/')}
-          className="mb-6"
+          className="mb-6 text-muted-foreground hover:text-primary"
         >
           <ArrowLeft className="w-4 h-4 mr-2" />
           BACK TO MENU
         </Button>
 
-        <div className="border-2 border-primary p-6 space-y-6">
+        <div className="stats-panel-accent p-6 space-y-6 rounded-sm">
           <div className="text-center">
-            <h2 className="font-arcade text-lg text-primary neon-glow">
+            <h2 
+              className="font-arcade text-sm text-primary"
+              style={{ textShadow: 'var(--shadow-neon-cyan)' }}
+            >
               {isLogin ? 'PLAYER LOGIN' : 'NEW PLAYER'}
             </h2>
-            <div className="w-24 h-1 bg-primary mx-auto mt-2" />
+            <div className="w-24 h-px bg-gradient-to-r from-transparent via-primary to-transparent mx-auto mt-3" />
           </div>
 
           <form onSubmit={handleSubmit} className="space-y-4">
             <div className="space-y-2">
-              <label className="font-arcade text-xs text-muted-foreground flex items-center gap-2">
-                <User className="w-4 h-4" />
+              <label className="font-arcade text-[10px] text-muted-foreground flex items-center gap-2">
+                <User className="w-3 h-3" />
                 USERNAME
               </label>
               <Input
@@ -54,14 +57,14 @@ const Login = () => {
                 value={username}
                 onChange={(e) => setUsername(e.target.value)}
                 placeholder="ENTER USERNAME"
-                className="font-retro text-lg bg-muted border-primary"
+                className="font-retro text-lg bg-background/50 border-primary/50"
                 required
               />
             </div>
 
             <div className="space-y-2">
-              <label className="font-arcade text-xs text-muted-foreground flex items-center gap-2">
-                <Lock className="w-4 h-4" />
+              <label className="font-arcade text-[10px] text-muted-foreground flex items-center gap-2">
+                <Lock className="w-3 h-3" />
                 PASSWORD
               </label>
               <Input
@@ -69,7 +72,7 @@ const Login = () => {
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 placeholder="ENTER PASSWORD"
-                className="font-retro text-lg bg-muted border-primary"
+                className="font-retro text-lg bg-background/50 border-primary/50"
                 required
               />
             </div>
@@ -98,7 +101,7 @@ const Login = () => {
             <Button
               variant="ghost"
               onClick={() => setIsLogin(!isLogin)}
-              className="font-retro text-sm"
+              className="font-retro text-sm text-muted-foreground hover:text-primary"
             >
               {isLogin ? "NEW PLAYER? REGISTER HERE" : "HAVE ACCOUNT? LOGIN HERE"}
             </Button>
@@ -106,7 +109,7 @@ const Login = () => {
         </div>
 
         <div className="mt-6 text-center">
-          <p className="font-retro text-muted-foreground text-sm">
+          <p className="font-retro text-muted-foreground/60 text-sm">
             LOGIN TO SAVE YOUR HIGH SCORES
           </p>
         </div>

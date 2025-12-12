@@ -33,13 +33,13 @@ const getRankIcon = (rank: number) => {
 const getRankClass = (rank: number) => {
   switch (rank) {
     case 1:
-      return "border-accent text-accent";
+      return "border-l-accent bg-accent/5";
     case 2:
-      return "border-muted-foreground text-muted-foreground";
+      return "border-l-muted-foreground bg-muted-foreground/5";
     case 3:
-      return "border-tetris-l text-tetris-l";
+      return "border-l-tetris-l bg-tetris-l/5";
     default:
-      return "border-muted text-foreground";
+      return "border-l-muted bg-muted/20";
   }
 };
 
@@ -52,43 +52,48 @@ const Leaderboard = () => {
         <Button 
           variant="ghost" 
           onClick={() => navigate('/')}
-          className="mb-6"
+          className="mb-6 text-muted-foreground hover:text-primary"
         >
           <ArrowLeft className="w-4 h-4 mr-2" />
           BACK TO MENU
         </Button>
 
-        <div className="border-2 border-primary p-4">
+        <div className="stats-panel-accent p-4 rounded-sm">
           <div className="text-center mb-6">
-            <h2 className="font-arcade text-lg text-primary neon-glow">TOP 10 PLAYERS</h2>
-            <div className="w-32 h-1 bg-primary mx-auto mt-2" />
+            <h2 
+              className="font-arcade text-sm text-primary"
+              style={{ textShadow: 'var(--shadow-neon-cyan)' }}
+            >
+              TOP 10 PLAYERS
+            </h2>
+            <div className="w-24 h-px bg-gradient-to-r from-transparent via-primary to-transparent mx-auto mt-3" />
           </div>
 
-          <div className="space-y-2">
+          <div className="space-y-1">
             {/* Header */}
-            <div className="grid grid-cols-12 gap-2 px-3 py-2 border-b-2 border-muted">
-              <div className="col-span-2 font-arcade text-[10px] text-muted-foreground">RANK</div>
-              <div className="col-span-4 font-arcade text-[10px] text-muted-foreground">NAME</div>
-              <div className="col-span-4 font-arcade text-[10px] text-muted-foreground text-right">SCORE</div>
-              <div className="col-span-2 font-arcade text-[10px] text-muted-foreground text-right">LVL</div>
+            <div className="grid grid-cols-12 gap-2 px-3 py-2 border-b border-muted/30">
+              <div className="col-span-2 font-arcade text-[8px] text-muted-foreground">RANK</div>
+              <div className="col-span-4 font-arcade text-[8px] text-muted-foreground">NAME</div>
+              <div className="col-span-4 font-arcade text-[8px] text-muted-foreground text-right">SCORE</div>
+              <div className="col-span-2 font-arcade text-[8px] text-muted-foreground text-right">LVL</div>
             </div>
 
             {/* Entries */}
             {mockLeaderboard.map((entry) => (
               <div
                 key={entry.rank}
-                className={`grid grid-cols-12 gap-2 px-3 py-3 border-l-4 ${getRankClass(entry.rank)} bg-muted/50 hover:bg-muted transition-colors`}
+                className={`grid grid-cols-12 gap-2 px-3 py-3 border-l-4 ${getRankClass(entry.rank)} rounded-r-sm hover:bg-muted/30 transition-colors`}
               >
                 <div className="col-span-2 flex items-center justify-center">
                   {getRankIcon(entry.rank)}
                 </div>
-                <div className="col-span-4 font-arcade text-sm flex items-center">
+                <div className="col-span-4 font-arcade text-xs flex items-center text-foreground">
                   {entry.name}
                 </div>
-                <div className="col-span-4 font-retro text-xl text-right text-accent">
+                <div className="col-span-4 font-arcade text-xs text-right text-primary">
                   {entry.score.toLocaleString()}
                 </div>
-                <div className="col-span-2 font-retro text-lg text-right text-secondary">
+                <div className="col-span-2 font-arcade text-xs text-right text-secondary">
                   {entry.level}
                 </div>
               </div>
