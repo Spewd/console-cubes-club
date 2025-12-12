@@ -1,6 +1,7 @@
 import { useTetris } from '@/hooks/useTetris';
 import { TetrisBoard } from './TetrisBoard';
 import { NextPiece } from './NextPiece';
+import { HoldPiece } from './HoldPiece';
 import { GameStats } from './GameStats';
 import { GameControls } from './GameControls';
 import { Button } from '@/components/ui/button';
@@ -13,6 +14,7 @@ interface TetrisGameProps {
 export const TetrisGame = ({ playerName = "PLAYER 1" }: TetrisGameProps) => {
   const {
     gameState,
+    ghostPosition,
     startGame,
     togglePause,
     moveLeft,
@@ -20,24 +22,26 @@ export const TetrisGame = ({ playerName = "PLAYER 1" }: TetrisGameProps) => {
     moveDown,
     rotate,
     hardDrop,
+    holdPiece,
   } = useTetris();
 
-  const { board, currentPiece, nextPiece, score, level, lines, isPlaying, isGameOver, isPaused } = gameState;
+  const { board, currentPiece, nextPiece, holdPiece: heldPiece, canHold, score, level, lines, isPlaying, isGameOver, isPaused } = gameState;
 
   return (
     <div className="flex flex-col lg:flex-row gap-6 items-start justify-center">
-      {/* Left Panel - Stats */}
+      {/* Left Panel - Hold & Stats */}
       <div className="flex flex-col gap-3 order-2 lg:order-1 min-w-[120px]">
         <div className="stats-panel p-2 rounded-sm text-center">
           <span className="font-arcade text-[8px] text-secondary">{playerName}</span>
         </div>
+        <HoldPiece piece={heldPiece} canHold={canHold} />
         <GameStats score={score} level={level} lines={lines} />
       </div>
 
       {/* Center - Game Board */}
       <div className="order-1 lg:order-2">
         <div className="relative">
-          <TetrisBoard board={board} currentPiece={currentPiece} />
+          <TetrisBoard board={board} currentPiece={currentPiece} ghostPosition={ghostPosition} />
           
           {/* Overlay for game states */}
           {!isPlaying && !isGameOver && (
@@ -88,6 +92,7 @@ export const TetrisGame = ({ playerName = "PLAYER 1" }: TetrisGameProps) => {
             <p>↑ ROTATE</p>
             <p>↓ DROP</p>
             <p>SPACE SLAM</p>
+            <p>C/SHIFT HOLD</p>
             <p>P PAUSE</p>
           </div>
         </div>
@@ -111,6 +116,7 @@ export const TetrisGame = ({ playerName = "PLAYER 1" }: TetrisGameProps) => {
             onMoveDown={moveDown}
             onRotate={rotate}
             onHardDrop={hardDrop}
+            onHold={holdPiece}
             disabled={!isPlaying || isPaused}
           />
         </div>

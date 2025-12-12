@@ -1,9 +1,10 @@
-import { Board, Piece, TetrisBlock, BOARD_WIDTH, BOARD_HEIGHT } from '@/hooks/useTetris';
+import { Board, Piece, TetrisBlock, BOARD_WIDTH, BOARD_HEIGHT, Position } from '@/hooks/useTetris';
 import { cn } from '@/lib/utils';
 
 interface TetrisBoardProps {
   board: Board;
   currentPiece: Piece | null;
+  ghostPosition?: Position | null;
 }
 
 const BLOCK_COLORS: Record<Exclude<TetrisBlock, null>, string> = {
@@ -16,10 +17,41 @@ const BLOCK_COLORS: Record<Exclude<TetrisBlock, null>, string> = {
   L: 'bg-tetris-l shadow-[0_0_12px_hsl(35_100%_55%)]',
 };
 
-export const TetrisBoard = ({ board, currentPiece }: TetrisBoardProps) => {
-  // Create a display board that includes the current piece
-  const displayBoard = board.map(row => [...row]);
+const GHOST_COLORS: Record<Exclude<TetrisBlock, null>, string> = {
+  I: 'border-2 border-tetris-i/50 bg-tetris-i/20',
+  O: 'border-2 border-tetris-o/50 bg-tetris-o/20',
+  T: 'border-2 border-tetris-t/50 bg-tetris-t/20',
+  S: 'border-2 border-tetris-s/50 bg-tetris-s/20',
+  Z: 'border-2 border-tetris-z/50 bg-tetris-z/20',
+  J: 'border-2 border-tetris-j/50 bg-tetris-j/20',
+  L: 'border-2 border-tetris-l/50 bg-tetris-l/20',
+};
+
+export const TetrisBoard = ({ board, currentPiece, ghostPosition }: TetrisBoardProps) => {
+  // Create a display board that includes ghost and current piece
+  const displayBoard: { cell: TetrisBlock; isGhost: boolean }[][] = board.map(row => 
+    row.map(cell => ({ cell, isGhost: false }))
+  );
   
+  // Add ghost piece first (so current piece renders on top)
+  if (currentPiece && ghostPosition && currentPiece.type) {
+    const { shape, type } = currentPiece;
+    for (let y = 0; y < shape.length; y++) {
+      for (let x = 0; x < shape[y].length; x++) {
+        if (shape[y][x] && ghostPosition.y + y >= 0) {
+          const boardY = ghostPosition.y + y;
+          const boardX = ghostPosition.x + x;
+          if (boardY < BOARD_HEIGHT && boardX >= 0 && boardX < BOARD_WIDTH) {
+            if (!displayBoard[boardY][boardX].cell) {
+              displayBoard[boardY][boardX] = { cell: type, isGhost: true };
+            }
+          }
+        }
+      }
+    }
+  }
+  
+  // Add current piece
   if (currentPiece) {
     const { shape, position, type } = currentPiece;
     for (let y = 0; y < shape.length; y++) {
@@ -28,7 +60,7 @@ export const TetrisBoard = ({ board, currentPiece }: TetrisBoardProps) => {
           const boardY = position.y + y;
           const boardX = position.x + x;
           if (boardY < BOARD_HEIGHT && boardX >= 0 && boardX < BOARD_WIDTH) {
-            displayBoard[boardY][boardX] = type;
+            displayBoard[boardY][boardX] = { cell: type, isGhost: false };
           }
         }
       }
@@ -45,13 +77,15 @@ export const TetrisBoard = ({ board, currentPiece }: TetrisBoardProps) => {
             gridTemplateRows: `repeat(${BOARD_HEIGHT}, 1fr)`,
           }}
         >
-          {displayBoard.flat().map((cell, index) => (
+          {displayBoard.flat().map((item, index) => (
             <div
               key={index}
               className={cn(
                 'aspect-square',
-                cell 
-                  ? `${BLOCK_COLORS[cell]} tetris-block rounded-[2px]` 
+                item.cell 
+                  ? item.isGhost
+                    ? `${GHOST_COLORS[item.cell]} rounded-[2px]`
+                    : `${BLOCK_COLORS[item.cell]} tetris-block rounded-[2px]`
                   : 'bg-muted/10 border border-muted/5'
               )}
             />

@@ -1,4 +1,4 @@
-import { useState, useCallback, useEffect } from 'react';
+import { useState, useCallback, useEffect, useMemo } from 'react';
 
 export const BOARD_WIDTH = 10;
 export const BOARD_HEIGHT = 20;
@@ -96,10 +96,24 @@ const calculateScore = (lines: number, level: number): number => {
   return points[lines] * (level + 1);
 };
 
+// Calculate ghost piece position
+const getGhostPosition = (board: Board, piece: Piece): Position => {
+  let dropDistance = 0;
+  while (!checkCollision(board, piece, { x: 0, y: dropDistance + 1 })) {
+    dropDistance++;
+  }
+  return {
+    x: piece.position.x,
+    y: piece.position.y + dropDistance
+  };
+};
+
 export interface GameState {
   board: Board;
   currentPiece: Piece | null;
   nextPiece: Piece;
+  holdPiece: Piece | null;
+  canHold: boolean;
   score: number;
   level: number;
   lines: number;
@@ -113,6 +127,8 @@ export const useTetris = () => {
     board: createEmptyBoard(),
     currentPiece: null,
     nextPiece: getRandomPiece(),
+    holdPiece: null,
+    canHold: true,
     score: 0,
     level: 0,
     lines: 0,
@@ -121,12 +137,20 @@ export const useTetris = () => {
     isPaused: false,
   });
 
+  // Calculate ghost piece position
+  const ghostPosition = useMemo(() => {
+    if (!gameState.currentPiece) return null;
+    return getGhostPosition(gameState.board, gameState.currentPiece);
+  }, [gameState.board, gameState.currentPiece]);
+
   const startGame = useCallback(() => {
     const firstPiece = getRandomPiece();
     setGameState({
       board: createEmptyBoard(),
       currentPiece: firstPiece,
       nextPiece: getRandomPiece(),
+      holdPiece: null,
+      canHold: true,
       score: 0,
       level: 0,
       lines: 0,
@@ -138,6 +162,48 @@ export const useTetris = () => {
 
   const togglePause = useCallback(() => {
     setGameState(prev => ({ ...prev, isPaused: !prev.isPaused }));
+  }, []);
+
+  const holdPiece = useCallback(() => {
+    setGameState(prev => {
+      if (!prev.currentPiece || prev.isPaused || !prev.isPlaying || !prev.canHold) return prev;
+      
+      const currentType = prev.currentPiece.type;
+      if (!currentType) return prev;
+      
+      // Create a fresh piece from the hold or get next piece
+      if (prev.holdPiece) {
+        const heldType = prev.holdPiece.type as Exclude<TetrisBlock, null>;
+        const newCurrentPiece: Piece = {
+          type: heldType,
+          shape: SHAPES[heldType],
+          position: { x: Math.floor((BOARD_WIDTH - SHAPES[heldType][0].length) / 2), y: 0 }
+        };
+        
+        return {
+          ...prev,
+          currentPiece: newCurrentPiece,
+          holdPiece: {
+            type: currentType,
+            shape: SHAPES[currentType],
+            position: { x: 0, y: 0 }
+          },
+          canHold: false,
+        };
+      } else {
+        return {
+          ...prev,
+          currentPiece: prev.nextPiece,
+          nextPiece: getRandomPiece(),
+          holdPiece: {
+            type: currentType,
+            shape: SHAPES[currentType],
+            position: { x: 0, y: 0 }
+          },
+          canHold: false,
+        };
+      }
+    });
   }, []);
 
   const moveLeft = useCallback(() => {
@@ -229,6 +295,7 @@ export const useTetris = () => {
         score: newScore,
         lines: newLines,
         level: newLevel,
+        canHold: true, // Reset hold ability when piece lands
       };
     });
   }, []);
@@ -276,6 +343,7 @@ export const useTetris = () => {
         score: newScore,
         lines: newLines,
         level: newLevel,
+        canHold: true, // Reset hold ability when piece lands
       };
     });
   }, []);
@@ -321,15 +389,22 @@ export const useTetris = () => {
           e.preventDefault();
           togglePause();
           break;
+        case 'c':
+        case 'C':
+        case 'Shift':
+          e.preventDefault();
+          holdPiece();
+          break;
       }
     };
 
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [gameState.isPlaying, moveLeft, moveRight, moveDown, rotate, hardDrop, togglePause]);
+  }, [gameState.isPlaying, moveLeft, moveRight, moveDown, rotate, hardDrop, togglePause, holdPiece]);
 
   return {
     gameState,
+    ghostPosition,
     startGame,
     togglePause,
     moveLeft,
@@ -337,5 +412,6 @@ export const useTetris = () => {
     moveDown,
     rotate,
     hardDrop,
+    holdPiece,
   };
 };

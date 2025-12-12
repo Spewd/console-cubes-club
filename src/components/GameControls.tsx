@@ -1,5 +1,5 @@
 import { Button } from '@/components/ui/button';
-import { RotateCw, ArrowDown, ArrowLeft, ArrowRight, ChevronsDown } from 'lucide-react';
+import { RotateCw, ArrowDown, ArrowLeft, ArrowRight, ChevronsDown, Archive } from 'lucide-react';
 
 interface GameControlsProps {
   onMoveLeft: () => void;
@@ -7,6 +7,7 @@ interface GameControlsProps {
   onMoveDown: () => void;
   onRotate: () => void;
   onHardDrop: () => void;
+  onHold?: () => void;
   disabled?: boolean;
 }
 
@@ -16,6 +17,7 @@ export const GameControls = ({
   onMoveDown,
   onRotate,
   onHardDrop,
+  onHold,
   disabled
 }: GameControlsProps) => {
   return (
@@ -63,17 +65,31 @@ export const GameControls = ({
         </Button>
       </div>
 
-      {/* Drop Button */}
-      <Button
-        variant="arcadeAccent"
-        size="lg"
-        onClick={onHardDrop}
-        disabled={disabled}
-        className="arcade-button w-full"
-      >
-        <ChevronsDown className="w-5 h-5 mr-2" />
-        DROP
-      </Button>
+      {/* Action Buttons */}
+      <div className="flex gap-2 w-full">
+        {onHold && (
+          <Button
+            variant="arcadeSecondary"
+            size="lg"
+            onClick={onHold}
+            disabled={disabled}
+            className="arcade-button flex-1"
+          >
+            <Archive className="w-5 h-5 mr-1" />
+            HOLD
+          </Button>
+        )}
+        <Button
+          variant="arcadeAccent"
+          size="lg"
+          onClick={onHardDrop}
+          disabled={disabled}
+          className="arcade-button flex-1"
+        >
+          <ChevronsDown className="w-5 h-5 mr-1" />
+          DROP
+        </Button>
+      </div>
     </div>
   );
 };
