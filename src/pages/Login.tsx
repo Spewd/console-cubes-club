@@ -16,7 +16,6 @@ const Login = () => {
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     
-    // Placeholder - will be connected to Lovable Cloud
     toast({
       title: isLogin ? "Login" : "Registration",
       description: "Connect Lovable Cloud to enable authentication!",
@@ -24,74 +23,71 @@ const Login = () => {
   };
 
   return (
-    <ArcadeCabinet title={isLogin ? "LOGIN" : "REGISTER"}>
+    <ArcadeCabinet title={isLogin ? "Login" : "Register"}>
       <div className="max-w-md mx-auto p-6">
         <Button 
           variant="ghost" 
           onClick={() => navigate('/')}
-          className="mb-6 text-muted-foreground hover:text-primary"
+          className="mb-6 text-muted-foreground"
         >
           <ArrowLeft className="w-4 h-4 mr-2" />
-          BACK TO MENU
+          Back to Menu
         </Button>
 
-        <div className="stats-panel-accent p-6 space-y-6 rounded-sm">
+        <div className="stats-panel p-6 space-y-6">
           <div className="text-center">
-            <h2 
-              className="font-arcade text-sm text-primary"
-              style={{ textShadow: 'var(--shadow-neon-cyan)' }}
-            >
-              {isLogin ? 'PLAYER LOGIN' : 'NEW PLAYER'}
+            <h2 className="text-lg font-medium text-foreground">
+              {isLogin ? 'Player Login' : 'New Player'}
             </h2>
-            <div className="w-24 h-px bg-gradient-to-r from-transparent via-primary to-transparent mx-auto mt-3" />
+            <div className="w-16 h-px bg-border mx-auto mt-3" />
           </div>
 
           <form onSubmit={handleSubmit} className="space-y-4">
             <div className="space-y-2">
-              <label className="font-arcade text-[10px] text-muted-foreground flex items-center gap-2">
+              <label className="text-xs text-muted-foreground flex items-center gap-2">
                 <User className="w-3 h-3" />
-                USERNAME
+                Username
               </label>
               <Input
                 type="text"
                 value={username}
                 onChange={(e) => setUsername(e.target.value)}
-                placeholder="ENTER USERNAME"
-                className="font-retro text-lg bg-background/50 border-primary/50"
+                placeholder="Enter username"
+                className="bg-background"
                 required
               />
             </div>
 
             <div className="space-y-2">
-              <label className="font-arcade text-[10px] text-muted-foreground flex items-center gap-2">
+              <label className="text-xs text-muted-foreground flex items-center gap-2">
                 <Lock className="w-3 h-3" />
-                PASSWORD
+                Password
               </label>
               <Input
                 type="password"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
-                placeholder="ENTER PASSWORD"
-                className="font-retro text-lg bg-background/50 border-primary/50"
+                placeholder="Enter password"
+                className="bg-background"
                 required
               />
             </div>
 
             <Button 
               type="submit" 
-              variant="neon" 
+              variant="default" 
               size="lg" 
-              className="w-full arcade-button"
+              className="w-full"
             >
               {isLogin ? (
                 <>
                   <LogIn className="w-5 h-5 mr-2" />
-                  LOGIN
+                  Login
                 </>
               ) : (
                 <>
                   <UserPlus className="w-5 h-5 mr-2" />
-                  REGISTER
+                  Register
                 </>
               )}
             </Button>
@@ -101,16 +97,16 @@ const Login = () => {
             <Button
               variant="ghost"
               onClick={() => setIsLogin(!isLogin)}
-              className="font-retro text-sm text-muted-foreground hover:text-primary"
+              className="text-sm text-muted-foreground"
             >
-              {isLogin ? "NEW PLAYER? REGISTER HERE" : "HAVE ACCOUNT? LOGIN HERE"}
+              {isLogin ? "New player? Register here" : "Have account? Login here"}
             </Button>
           </div>
         </div>
 
         <div className="mt-6 text-center">
-          <p className="font-retro text-muted-foreground/60 text-sm">
-            LOGIN TO SAVE YOUR HIGH SCORES
+          <p className="text-muted-foreground text-sm">
+            Login to save your high scores
           </p>
         </div>
       </div>

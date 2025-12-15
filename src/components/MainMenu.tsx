@@ -8,65 +8,59 @@ export const MainMenu = () => {
   return (
     <div className="flex flex-col items-center justify-center min-h-[400px] gap-6 p-8">
       <div className="space-y-2 text-center mb-8">
-        <h2 
-          className="font-arcade text-lg text-primary"
-          style={{ textShadow: 'var(--shadow-neon-cyan)' }}
-        >
-          SELECT MODE
+        <h2 className="text-lg font-medium text-foreground">
+          Select Mode
         </h2>
-        <div className="w-32 h-px bg-gradient-to-r from-transparent via-primary to-transparent mx-auto" />
+        <div className="w-16 h-px bg-border mx-auto" />
       </div>
 
-      <div className="flex flex-col gap-4 w-full max-w-xs">
+      <div className="flex flex-col gap-3 w-full max-w-xs">
         <Button
-          variant="neon"
+          variant="default"
           size="lg"
           onClick={() => navigate('/game')}
-          className="arcade-button w-full justify-start"
+          className="w-full justify-start"
         >
           <Play className="w-5 h-5 mr-3" />
-          SINGLE PLAYER
+          Single Player
         </Button>
 
         <Button
-          variant="arcadeSecondary"
+          variant="secondary"
           size="lg"
           onClick={() => navigate('/multiplayer')}
-          className="arcade-button w-full justify-start"
+          className="w-full justify-start"
         >
           <Users className="w-5 h-5 mr-3" />
-          MULTIPLAYER
+          Multiplayer
         </Button>
 
         <Button
-          variant="arcadeAccent"
+          variant="secondary"
           size="lg"
           onClick={() => navigate('/leaderboard')}
-          className="arcade-button w-full justify-start"
+          className="w-full justify-start"
         >
           <Trophy className="w-5 h-5 mr-3" />
-          LEADERBOARD
+          Leaderboard
         </Button>
 
-        <div className="border-t border-muted/30 my-4" />
+        <div className="border-t border-border my-4" />
 
         <Button
           variant="outline"
           size="lg"
           onClick={() => navigate('/login')}
-          className="arcade-button w-full justify-start border-muted-foreground/30 hover:border-primary"
+          className="w-full justify-start"
         >
           <LogIn className="w-5 h-5 mr-3" />
-          LOGIN / REGISTER
+          Login / Register
         </Button>
       </div>
 
       <div className="mt-8 text-center">
-        <p className="font-retro text-muted-foreground text-sm">
-          © 2024 TETRIS EFFECT EDITION
-        </p>
-        <p className="font-retro text-muted-foreground/50 text-xs mt-1 animate-pulse">
-          INSERT COIN TO CONTINUE
+        <p className="text-muted-foreground text-sm">
+          © 2024 Tetris
         </p>
       </div>
     </div>

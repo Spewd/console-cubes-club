@@ -8,32 +8,30 @@ interface TetrisBoardProps {
 }
 
 const BLOCK_COLORS: Record<Exclude<TetrisBlock, null>, string> = {
-  I: 'bg-tetris-i shadow-[0_0_12px_hsl(185_100%_55%)]',
-  O: 'bg-tetris-o shadow-[0_0_12px_hsl(50_100%_55%)]',
-  T: 'bg-tetris-t shadow-[0_0_12px_hsl(290_100%_65%)]',
-  S: 'bg-tetris-s shadow-[0_0_12px_hsl(140_100%_50%)]',
-  Z: 'bg-tetris-z shadow-[0_0_12px_hsl(0_100%_55%)]',
-  J: 'bg-tetris-j shadow-[0_0_12px_hsl(225_100%_60%)]',
-  L: 'bg-tetris-l shadow-[0_0_12px_hsl(35_100%_55%)]',
+  I: 'bg-tetris-i',
+  O: 'bg-tetris-o',
+  T: 'bg-tetris-t',
+  S: 'bg-tetris-s',
+  Z: 'bg-tetris-z',
+  J: 'bg-tetris-j',
+  L: 'bg-tetris-l',
 };
 
 const GHOST_COLORS: Record<Exclude<TetrisBlock, null>, string> = {
-  I: 'border-2 border-tetris-i/50 bg-tetris-i/20',
-  O: 'border-2 border-tetris-o/50 bg-tetris-o/20',
-  T: 'border-2 border-tetris-t/50 bg-tetris-t/20',
-  S: 'border-2 border-tetris-s/50 bg-tetris-s/20',
-  Z: 'border-2 border-tetris-z/50 bg-tetris-z/20',
-  J: 'border-2 border-tetris-j/50 bg-tetris-j/20',
-  L: 'border-2 border-tetris-l/50 bg-tetris-l/20',
+  I: 'border border-tetris-i/40 bg-tetris-i/10',
+  O: 'border border-tetris-o/40 bg-tetris-o/10',
+  T: 'border border-tetris-t/40 bg-tetris-t/10',
+  S: 'border border-tetris-s/40 bg-tetris-s/10',
+  Z: 'border border-tetris-z/40 bg-tetris-z/10',
+  J: 'border border-tetris-j/40 bg-tetris-j/10',
+  L: 'border border-tetris-l/40 bg-tetris-l/10',
 };
 
 export const TetrisBoard = ({ board, currentPiece, ghostPosition }: TetrisBoardProps) => {
-  // Create a display board that includes ghost and current piece
   const displayBoard: { cell: TetrisBlock; isGhost: boolean }[][] = board.map(row => 
     row.map(cell => ({ cell, isGhost: false }))
   );
   
-  // Add ghost piece first (so current piece renders on top)
   if (currentPiece && ghostPosition && currentPiece.type) {
     const { shape, type } = currentPiece;
     for (let y = 0; y < shape.length; y++) {
@@ -51,7 +49,6 @@ export const TetrisBoard = ({ board, currentPiece, ghostPosition }: TetrisBoardP
     }
   }
   
-  // Add current piece
   if (currentPiece) {
     const { shape, position, type } = currentPiece;
     for (let y = 0; y < shape.length; y++) {
@@ -68,8 +65,8 @@ export const TetrisBoard = ({ board, currentPiece, ghostPosition }: TetrisBoardP
   }
 
   return (
-    <div className="game-board-border rounded-sm p-1">
-      <div className="game-board-container p-2 rounded-sm">
+    <div className="game-board-border p-1">
+      <div className="game-board-container p-2">
         <div 
           className="grid gap-[1px]"
           style={{ 
@@ -82,12 +79,12 @@ export const TetrisBoard = ({ board, currentPiece, ghostPosition }: TetrisBoardP
             <div
               key={index}
               className={cn(
-                'w-full h-full',
+                'w-full h-full rounded-sm',
                 item.cell 
                   ? item.isGhost
-                    ? `${GHOST_COLORS[item.cell]} rounded-[2px]`
-                    : `${BLOCK_COLORS[item.cell]} tetris-block rounded-[2px]`
-                  : 'bg-muted/10 border border-muted/5'
+                    ? GHOST_COLORS[item.cell]
+                    : `${BLOCK_COLORS[item.cell]} tetris-block`
+                  : 'bg-muted/20'
               )}
             />
           ))}
