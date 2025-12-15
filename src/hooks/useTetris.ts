@@ -1,4 +1,4 @@
-import { useState, useCallback, useEffect, useMemo } from 'react';
+import { useState, useCallback, useEffect, useMemo, useRef } from 'react';
 
 export const BOARD_WIDTH = 10;
 export const BOARD_HEIGHT = 20;
@@ -14,41 +14,77 @@ export interface Piece {
   type: TetrisBlock;
   shape: number[][];
   position: Position;
+  rotationState: number; // 0, 1, 2, 3 for T-spin detection
 }
 
 const SHAPES: Record<Exclude<TetrisBlock, null>, number[][]> = {
-  I: [[1, 1, 1, 1]],
+  I: [[0, 0, 0, 0], [1, 1, 1, 1], [0, 0, 0, 0], [0, 0, 0, 0]],
   O: [[1, 1], [1, 1]],
-  T: [[0, 1, 0], [1, 1, 1]],
-  S: [[0, 1, 1], [1, 1, 0]],
-  Z: [[1, 1, 0], [0, 1, 1]],
-  J: [[1, 0, 0], [1, 1, 1]],
-  L: [[0, 0, 1], [1, 1, 1]],
+  T: [[0, 1, 0], [1, 1, 1], [0, 0, 0]],
+  S: [[0, 1, 1], [1, 1, 0], [0, 0, 0]],
+  Z: [[1, 1, 0], [0, 1, 1], [0, 0, 0]],
+  J: [[1, 0, 0], [1, 1, 1], [0, 0, 0]],
+  L: [[0, 0, 1], [1, 1, 1], [0, 0, 0]],
+};
+
+// SRS Wall Kick data
+const WALL_KICKS: Record<string, Position[][]> = {
+  JLSTZ: [
+    [{ x: 0, y: 0 }, { x: -1, y: 0 }, { x: -1, y: -1 }, { x: 0, y: 2 }, { x: -1, y: 2 }], // 0->1
+    [{ x: 0, y: 0 }, { x: 1, y: 0 }, { x: 1, y: 1 }, { x: 0, y: -2 }, { x: 1, y: -2 }],   // 1->2
+    [{ x: 0, y: 0 }, { x: 1, y: 0 }, { x: 1, y: -1 }, { x: 0, y: 2 }, { x: 1, y: 2 }],    // 2->3
+    [{ x: 0, y: 0 }, { x: -1, y: 0 }, { x: -1, y: 1 }, { x: 0, y: -2 }, { x: -1, y: -2 }], // 3->0
+  ],
+  I: [
+    [{ x: 0, y: 0 }, { x: -2, y: 0 }, { x: 1, y: 0 }, { x: -2, y: 1 }, { x: 1, y: -2 }],   // 0->1
+    [{ x: 0, y: 0 }, { x: -1, y: 0 }, { x: 2, y: 0 }, { x: -1, y: -2 }, { x: 2, y: 1 }],   // 1->2
+    [{ x: 0, y: 0 }, { x: 2, y: 0 }, { x: -1, y: 0 }, { x: 2, y: -1 }, { x: -1, y: 2 }],   // 2->3
+    [{ x: 0, y: 0 }, { x: 1, y: 0 }, { x: -2, y: 0 }, { x: 1, y: 2 }, { x: -2, y: -1 }],   // 3->0
+  ],
 };
 
 const PIECE_TYPES: Exclude<TetrisBlock, null>[] = ['I', 'O', 'T', 'S', 'Z', 'J', 'L'];
 
 export type Board = TetrisBlock[][];
 
+type LastAction = 'none' | 'move' | 'rotate';
+
 const createEmptyBoard = (): Board => 
   Array(BOARD_HEIGHT).fill(null).map(() => Array(BOARD_WIDTH).fill(null));
 
-const getRandomPiece = (): Piece => {
-  const type = PIECE_TYPES[Math.floor(Math.random() * PIECE_TYPES.length)];
+// 7-bag randomizer for fair piece distribution
+const createBag = (): Exclude<TetrisBlock, null>[] => {
+  const bag = [...PIECE_TYPES];
+  for (let i = bag.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [bag[i], bag[j]] = [bag[j], bag[i]];
+  }
+  return bag;
+};
+
+const getRandomPiece = (bag: Exclude<TetrisBlock, null>[]): { piece: Piece; newBag: Exclude<TetrisBlock, null>[] } => {
+  let newBag = [...bag];
+  if (newBag.length === 0) {
+    newBag = createBag();
+  }
+  const type = newBag.shift()!;
   return {
-    type,
-    shape: SHAPES[type],
-    position: { x: Math.floor((BOARD_WIDTH - SHAPES[type][0].length) / 2), y: 0 }
+    piece: {
+      type,
+      shape: SHAPES[type].map(row => [...row]),
+      position: { x: Math.floor((BOARD_WIDTH - SHAPES[type][0].length) / 2), y: 0 },
+      rotationState: 0,
+    },
+    newBag,
   };
 };
 
 const rotateMatrix = (matrix: number[][]): number[][] => {
-  const rows = matrix.length;
-  const cols = matrix[0].length;
-  const rotated = Array(cols).fill(null).map(() => Array(rows).fill(0));
-  for (let r = 0; r < rows; r++) {
-    for (let c = 0; c < cols; c++) {
-      rotated[c][rows - 1 - r] = matrix[r][c];
+  const size = matrix.length;
+  const rotated = Array(size).fill(null).map(() => Array(size).fill(0));
+  for (let r = 0; r < size; r++) {
+    for (let c = 0; c < size; c++) {
+      rotated[c][size - 1 - r] = matrix[r][c];
     }
   }
   return rotated;
@@ -91,9 +127,86 @@ const clearLines = (board: Board): { newBoard: Board; linesCleared: number } => 
   return { newBoard, linesCleared };
 };
 
-const calculateScore = (lines: number, level: number): number => {
-  const points = [0, 40, 100, 300, 1200];
-  return points[lines] * (level + 1);
+// T-spin detection - check if T piece is locked with 3 corners filled
+const detectTSpin = (board: Board, piece: Piece, lastAction: LastAction): 'none' | 'mini' | 'full' => {
+  if (piece.type !== 'T' || lastAction !== 'rotate') return 'none';
+  
+  const { position } = piece;
+  // T piece center is at position + 1 in both x and y (for 3x3 matrix)
+  const centerX = position.x + 1;
+  const centerY = position.y + 1;
+  
+  // Check the 4 corners around the T center
+  const corners = [
+    { x: centerX - 1, y: centerY - 1 }, // top-left
+    { x: centerX + 1, y: centerY - 1 }, // top-right
+    { x: centerX - 1, y: centerY + 1 }, // bottom-left
+    { x: centerX + 1, y: centerY + 1 }, // bottom-right
+  ];
+  
+  let filledCorners = 0;
+  let frontCornersFilled = 0;
+  
+  corners.forEach((corner, index) => {
+    const isBlocked = 
+      corner.x < 0 || corner.x >= BOARD_WIDTH || 
+      corner.y >= BOARD_HEIGHT || 
+      (corner.y >= 0 && board[corner.y][corner.x] !== null);
+    
+    if (isBlocked) {
+      filledCorners++;
+      // Front corners depend on rotation state
+      const frontIndices = [[0, 1], [1, 3], [2, 3], [0, 2]][piece.rotationState];
+      if (frontIndices.includes(index)) frontCornersFilled++;
+    }
+  });
+  
+  if (filledCorners >= 3) {
+    return frontCornersFilled >= 2 ? 'full' : 'mini';
+  }
+  return 'none';
+};
+
+// Advanced scoring system
+const calculateScore = (
+  lines: number, 
+  level: number, 
+  tSpin: 'none' | 'mini' | 'full',
+  isPerfectClear: boolean,
+  combo: number,
+  isBackToBack: boolean
+): number => {
+  let baseScore = 0;
+  
+  // Base line clear scores
+  if (tSpin === 'full') {
+    const tSpinScores = [400, 800, 1200, 1600]; // T-spin (0 lines), single, double, triple
+    baseScore = tSpinScores[lines] || 0;
+  } else if (tSpin === 'mini') {
+    const miniScores = [100, 200, 400]; // Mini T-spin, single, double
+    baseScore = miniScores[lines] || 0;
+  } else {
+    const normalScores = [0, 100, 300, 500, 800]; // Single, double, triple, tetris
+    baseScore = normalScores[lines] || 0;
+  }
+  
+  // Back-to-back bonus (1.5x for consecutive difficult clears)
+  if (isBackToBack && (lines === 4 || tSpin !== 'none')) {
+    baseScore = Math.floor(baseScore * 1.5);
+  }
+  
+  // Perfect clear bonus
+  if (isPerfectClear) {
+    const perfectScores = [0, 800, 1200, 1800, 2000];
+    baseScore += perfectScores[lines] || 0;
+  }
+  
+  // Combo bonus
+  if (combo > 0 && lines > 0) {
+    baseScore += 50 * combo;
+  }
+  
+  return baseScore * (level + 1);
 };
 
 // Calculate ghost piece position
@@ -108,6 +221,13 @@ const getGhostPosition = (board: Board, piece: Piece): Position => {
   };
 };
 
+// Speed curve (milliseconds per drop)
+const getDropSpeed = (level: number): number => {
+  // Classic NES-style speed curve
+  const speeds = [800, 717, 633, 550, 467, 383, 300, 217, 133, 100, 83, 83, 83, 67, 67, 67, 50, 50, 50, 33];
+  return speeds[Math.min(level, speeds.length - 1)];
+};
+
 export interface GameState {
   board: Board;
   currentPiece: Piece | null;
@@ -120,13 +240,16 @@ export interface GameState {
   isPlaying: boolean;
   isGameOver: boolean;
   isPaused: boolean;
+  combo: number;
+  lastClearWasDifficult: boolean;
+  bag: Exclude<TetrisBlock, null>[];
 }
 
 export const useTetris = () => {
   const [gameState, setGameState] = useState<GameState>({
     board: createEmptyBoard(),
     currentPiece: null,
-    nextPiece: getRandomPiece(),
+    nextPiece: { type: 'T', shape: SHAPES.T, position: { x: 0, y: 0 }, rotationState: 0 },
     holdPiece: null,
     canHold: true,
     score: 0,
@@ -135,7 +258,12 @@ export const useTetris = () => {
     isPlaying: false,
     isGameOver: false,
     isPaused: false,
+    combo: -1,
+    lastClearWasDifficult: false,
+    bag: [],
   });
+  
+  const lastActionRef = useRef<LastAction>('none');
 
   // Calculate ghost piece position
   const ghostPosition = useMemo(() => {
@@ -144,11 +272,14 @@ export const useTetris = () => {
   }, [gameState.board, gameState.currentPiece]);
 
   const startGame = useCallback(() => {
-    const firstPiece = getRandomPiece();
+    const initialBag = createBag();
+    const { piece: firstPiece, newBag: bag1 } = getRandomPiece(initialBag);
+    const { piece: nextPiece, newBag: bag2 } = getRandomPiece(bag1);
+    
     setGameState({
       board: createEmptyBoard(),
       currentPiece: firstPiece,
-      nextPiece: getRandomPiece(),
+      nextPiece: nextPiece,
       holdPiece: null,
       canHold: true,
       score: 0,
@@ -157,7 +288,11 @@ export const useTetris = () => {
       isPlaying: true,
       isGameOver: false,
       isPaused: false,
+      combo: -1,
+      lastClearWasDifficult: false,
+      bag: bag2,
     });
+    lastActionRef.current = 'none';
   }, []);
 
   const togglePause = useCallback(() => {
@@ -171,13 +306,13 @@ export const useTetris = () => {
       const currentType = prev.currentPiece.type;
       if (!currentType) return prev;
       
-      // Create a fresh piece from the hold or get next piece
       if (prev.holdPiece) {
         const heldType = prev.holdPiece.type as Exclude<TetrisBlock, null>;
         const newCurrentPiece: Piece = {
           type: heldType,
-          shape: SHAPES[heldType],
-          position: { x: Math.floor((BOARD_WIDTH - SHAPES[heldType][0].length) / 2), y: 0 }
+          shape: SHAPES[heldType].map(row => [...row]),
+          position: { x: Math.floor((BOARD_WIDTH - SHAPES[heldType][0].length) / 2), y: 0 },
+          rotationState: 0,
         };
         
         return {
@@ -185,31 +320,37 @@ export const useTetris = () => {
           currentPiece: newCurrentPiece,
           holdPiece: {
             type: currentType,
-            shape: SHAPES[currentType],
-            position: { x: 0, y: 0 }
+            shape: SHAPES[currentType].map(row => [...row]),
+            position: { x: 0, y: 0 },
+            rotationState: 0,
           },
           canHold: false,
         };
       } else {
+        const { piece: newNext, newBag } = getRandomPiece(prev.bag);
         return {
           ...prev,
           currentPiece: prev.nextPiece,
-          nextPiece: getRandomPiece(),
+          nextPiece: newNext,
           holdPiece: {
             type: currentType,
-            shape: SHAPES[currentType],
-            position: { x: 0, y: 0 }
+            shape: SHAPES[currentType].map(row => [...row]),
+            position: { x: 0, y: 0 },
+            rotationState: 0,
           },
           canHold: false,
+          bag: newBag,
         };
       }
     });
+    lastActionRef.current = 'none';
   }, []);
 
   const moveLeft = useCallback(() => {
     setGameState(prev => {
       if (!prev.currentPiece || prev.isPaused || !prev.isPlaying) return prev;
       if (!checkCollision(prev.board, prev.currentPiece, { x: -1, y: 0 })) {
+        lastActionRef.current = 'move';
         return {
           ...prev,
           currentPiece: {
@@ -226,6 +367,7 @@ export const useTetris = () => {
     setGameState(prev => {
       if (!prev.currentPiece || prev.isPaused || !prev.isPlaying) return prev;
       if (!checkCollision(prev.board, prev.currentPiece, { x: 1, y: 0 })) {
+        lastActionRef.current = 'move';
         return {
           ...prev,
           currentPiece: {
@@ -241,13 +383,88 @@ export const useTetris = () => {
   const rotate = useCallback(() => {
     setGameState(prev => {
       if (!prev.currentPiece || prev.isPaused || !prev.isPlaying) return prev;
+      if (prev.currentPiece.type === 'O') return prev; // O piece doesn't rotate
+      
       const rotatedShape = rotateMatrix(prev.currentPiece.shape);
-      const rotatedPiece = { ...prev.currentPiece, shape: rotatedShape };
-      if (!checkCollision(prev.board, rotatedPiece)) {
-        return { ...prev, currentPiece: rotatedPiece };
+      const newRotationState = (prev.currentPiece.rotationState + 1) % 4;
+      
+      // Get wall kick data
+      const kickData = prev.currentPiece.type === 'I' ? WALL_KICKS.I : WALL_KICKS.JLSTZ;
+      const kicks = kickData[prev.currentPiece.rotationState];
+      
+      // Try each kick position
+      for (const kick of kicks) {
+        const testPiece: Piece = {
+          ...prev.currentPiece,
+          shape: rotatedShape,
+          position: {
+            x: prev.currentPiece.position.x + kick.x,
+            y: prev.currentPiece.position.y + kick.y,
+          },
+          rotationState: newRotationState,
+        };
+        
+        if (!checkCollision(prev.board, testPiece)) {
+          lastActionRef.current = 'rotate';
+          return { ...prev, currentPiece: testPiece };
+        }
       }
+      
       return prev;
     });
+  }, []);
+
+  const lockPiece = useCallback((prev: GameState, piece: Piece, dropBonus: number = 0): GameState => {
+    const tSpin = detectTSpin(prev.board, piece, lastActionRef.current);
+    const newBoard = mergePieceToBoard(prev.board, piece);
+    const { newBoard: clearedBoard, linesCleared } = clearLines(newBoard);
+    
+    // Check for perfect clear
+    const isPerfectClear = clearedBoard.every(row => row.every(cell => cell === null));
+    
+    // Update combo
+    const newCombo = linesCleared > 0 ? prev.combo + 1 : -1;
+    
+    // Check back-to-back
+    const isDifficultClear = linesCleared === 4 || tSpin !== 'none';
+    const isBackToBack = prev.lastClearWasDifficult && isDifficultClear;
+    
+    const scoreGain = calculateScore(linesCleared, prev.level, tSpin, isPerfectClear, newCombo, isBackToBack) + dropBonus;
+    const newScore = prev.score + scoreGain;
+    const newLines = prev.lines + linesCleared;
+    const newLevel = Math.floor(newLines / 10);
+    
+    const { piece: nextPiece, newBag } = getRandomPiece(prev.bag);
+    
+    // Check game over
+    if (checkCollision(clearedBoard, prev.nextPiece)) {
+      return {
+        ...prev,
+        board: clearedBoard,
+        currentPiece: null,
+        score: newScore,
+        lines: newLines,
+        level: newLevel,
+        isPlaying: false,
+        isGameOver: true,
+        combo: newCombo,
+        lastClearWasDifficult: linesCleared > 0 ? isDifficultClear : prev.lastClearWasDifficult,
+      };
+    }
+    
+    return {
+      ...prev,
+      board: clearedBoard,
+      currentPiece: prev.nextPiece,
+      nextPiece: nextPiece,
+      score: newScore,
+      lines: newLines,
+      level: newLevel,
+      canHold: true,
+      combo: newCombo,
+      lastClearWasDifficult: linesCleared > 0 ? isDifficultClear : prev.lastClearWasDifficult,
+      bag: newBag,
+    };
   }, []);
 
   const moveDown = useCallback(() => {
@@ -255,6 +472,7 @@ export const useTetris = () => {
       if (!prev.currentPiece || prev.isPaused || !prev.isPlaying) return prev;
       
       if (!checkCollision(prev.board, prev.currentPiece, { x: 0, y: 1 })) {
+        lastActionRef.current = 'move';
         return {
           ...prev,
           currentPiece: {
@@ -265,38 +483,29 @@ export const useTetris = () => {
       }
       
       // Piece has landed
-      const newBoard = mergePieceToBoard(prev.board, prev.currentPiece);
-      const { newBoard: clearedBoard, linesCleared } = clearLines(newBoard);
-      const newScore = prev.score + calculateScore(linesCleared, prev.level);
-      const newLines = prev.lines + linesCleared;
-      const newLevel = Math.floor(newLines / 10);
+      const result = lockPiece(prev, prev.currentPiece);
+      lastActionRef.current = 'none';
+      return result;
+    });
+  }, [lockPiece]);
+
+  const softDrop = useCallback(() => {
+    setGameState(prev => {
+      if (!prev.currentPiece || prev.isPaused || !prev.isPlaying) return prev;
       
-      const nextPiece = prev.nextPiece;
-      
-      // Check game over
-      if (checkCollision(clearedBoard, nextPiece)) {
+      if (!checkCollision(prev.board, prev.currentPiece, { x: 0, y: 1 })) {
+        lastActionRef.current = 'move';
         return {
           ...prev,
-          board: clearedBoard,
-          currentPiece: null,
-          score: newScore,
-          lines: newLines,
-          level: newLevel,
-          isPlaying: false,
-          isGameOver: true,
+          currentPiece: {
+            ...prev.currentPiece,
+            position: { ...prev.currentPiece.position, y: prev.currentPiece.position.y + 1 }
+          },
+          score: prev.score + 1, // 1 point per soft drop cell
         };
       }
       
-      return {
-        ...prev,
-        board: clearedBoard,
-        currentPiece: nextPiece,
-        nextPiece: getRandomPiece(),
-        score: newScore,
-        lines: newLines,
-        level: newLevel,
-        canHold: true, // Reset hold ability when piece lands
-      };
+      return prev;
     });
   }, []);
 
@@ -309,50 +518,22 @@ export const useTetris = () => {
         dropDistance++;
       }
       
-      const droppedPiece = {
+      const droppedPiece: Piece = {
         ...prev.currentPiece,
         position: { ...prev.currentPiece.position, y: prev.currentPiece.position.y + dropDistance }
       };
       
-      const newBoard = mergePieceToBoard(prev.board, droppedPiece);
-      const { newBoard: clearedBoard, linesCleared } = clearLines(newBoard);
-      const newScore = prev.score + calculateScore(linesCleared, prev.level) + dropDistance * 2;
-      const newLines = prev.lines + linesCleared;
-      const newLevel = Math.floor(newLines / 10);
-      
-      const nextPiece = prev.nextPiece;
-      
-      if (checkCollision(clearedBoard, nextPiece)) {
-        return {
-          ...prev,
-          board: clearedBoard,
-          currentPiece: null,
-          score: newScore,
-          lines: newLines,
-          level: newLevel,
-          isPlaying: false,
-          isGameOver: true,
-        };
-      }
-      
-      return {
-        ...prev,
-        board: clearedBoard,
-        currentPiece: nextPiece,
-        nextPiece: getRandomPiece(),
-        score: newScore,
-        lines: newLines,
-        level: newLevel,
-        canHold: true, // Reset hold ability when piece lands
-      };
+      const result = lockPiece(prev, droppedPiece, dropDistance * 2); // 2 points per cell for hard drop
+      lastActionRef.current = 'none';
+      return result;
     });
-  }, []);
+  }, [lockPiece]);
 
-  // Auto drop
+  // Auto drop with proper speed curve
   useEffect(() => {
     if (!gameState.isPlaying || gameState.isPaused) return;
     
-    const speed = Math.max(100, 1000 - gameState.level * 100);
+    const speed = getDropSpeed(gameState.level);
     const interval = setInterval(moveDown, speed);
     
     return () => clearInterval(interval);
@@ -374,7 +555,7 @@ export const useTetris = () => {
           break;
         case 'ArrowDown':
           e.preventDefault();
-          moveDown();
+          softDrop();
           break;
         case 'ArrowUp':
           e.preventDefault();
@@ -400,7 +581,7 @@ export const useTetris = () => {
 
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [gameState.isPlaying, moveLeft, moveRight, moveDown, rotate, hardDrop, togglePause, holdPiece]);
+  }, [gameState.isPlaying, moveLeft, moveRight, softDrop, rotate, hardDrop, togglePause, holdPiece]);
 
   return {
     gameState,
@@ -409,7 +590,7 @@ export const useTetris = () => {
     togglePause,
     moveLeft,
     moveRight,
-    moveDown,
+    moveDown: softDrop,
     rotate,
     hardDrop,
     holdPiece,
