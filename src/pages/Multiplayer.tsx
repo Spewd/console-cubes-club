@@ -37,36 +37,30 @@ const Multiplayer = () => {
 
   if (gameStarted) {
     return (
-      <ArcadeCabinet title="VS MODE">
+      <ArcadeCabinet title="VS Mode">
         <div className="space-y-4">
           <Button 
             variant="ghost" 
             onClick={() => setGameStarted(false)}
-            className="mb-4 text-muted-foreground hover:text-primary"
+            className="mb-4 text-muted-foreground"
           >
             <ArrowLeft className="w-4 h-4 mr-2" />
-            LEAVE GAME
+            Leave Game
           </Button>
           
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-            <div className="game-board-border p-4 rounded-sm">
-              <h3 
-                className="font-arcade text-xs text-primary text-center mb-4"
-                style={{ textShadow: 'var(--shadow-neon-cyan)' }}
-              >
-                PLAYER 1
+            <div className="stats-panel p-4">
+              <h3 className="text-xs text-foreground text-center mb-4">
+                Player 1
               </h3>
-              <TetrisGame playerName="PLAYER 1" />
+              <TetrisGame playerName="Player 1" />
             </div>
-            <div className="stats-panel-accent p-4 rounded-sm border-secondary/40">
-              <h3 
-                className="font-arcade text-xs text-secondary text-center mb-4"
-                style={{ textShadow: 'var(--shadow-neon-purple)' }}
-              >
-                PLAYER 2
+            <div className="stats-panel p-4">
+              <h3 className="text-xs text-foreground text-center mb-4">
+                Player 2
               </h3>
-              <div className="flex items-center justify-center h-96 text-muted-foreground font-retro animate-pulse">
-                WAITING FOR OPPONENT...
+              <div className="flex items-center justify-center h-96 text-muted-foreground">
+                Waiting for opponent...
               </div>
             </div>
           </div>
@@ -76,95 +70,86 @@ const Multiplayer = () => {
   }
 
   return (
-    <ArcadeCabinet title="MULTIPLAYER">
+    <ArcadeCabinet title="Multiplayer">
       <div className="max-w-md mx-auto p-6">
         <Button 
           variant="ghost" 
           onClick={() => navigate('/')}
-          className="mb-6 text-muted-foreground hover:text-primary"
+          className="mb-6 text-muted-foreground"
         >
           <ArrowLeft className="w-4 h-4 mr-2" />
-          BACK TO MENU
+          Back to Menu
         </Button>
 
         <div className="space-y-4">
           {/* Create Room */}
-          <div className="stats-panel-accent p-6 space-y-4 rounded-sm">
+          <div className="stats-panel p-6 space-y-4">
             <div className="text-center">
-              <h3 
-                className="font-arcade text-xs text-primary flex items-center justify-center gap-2"
-                style={{ textShadow: 'var(--shadow-neon-cyan)' }}
-              >
+              <h3 className="text-sm font-medium text-foreground flex items-center justify-center gap-2">
                 <Users className="w-4 h-4" />
-                CREATE ROOM
+                Create Room
               </h3>
             </div>
-            <p className="font-retro text-muted-foreground text-center text-sm">
+            <p className="text-muted-foreground text-center text-sm">
               Start a new game and invite a friend
             </p>
             <Button 
-              variant="neon" 
+              variant="default" 
               size="lg" 
               onClick={handleCreateRoom}
-              className="w-full arcade-button"
+              className="w-full"
             >
               <Wifi className="w-5 h-5 mr-2" />
-              CREATE NEW ROOM
+              Create New Room
             </Button>
           </div>
 
           {/* Join Room */}
-          <div className="stats-panel p-6 space-y-4 rounded-sm border-secondary/30">
+          <div className="stats-panel p-6 space-y-4">
             <div className="text-center">
-              <h3 
-                className="font-arcade text-xs text-secondary flex items-center justify-center gap-2"
-                style={{ textShadow: 'var(--shadow-neon-purple)' }}
-              >
+              <h3 className="text-sm font-medium text-foreground flex items-center justify-center gap-2">
                 <Play className="w-4 h-4" />
-                JOIN ROOM
+                Join Room
               </h3>
             </div>
-            <p className="font-retro text-muted-foreground text-center text-sm">
+            <p className="text-muted-foreground text-center text-sm">
               Enter a room code to join
             </p>
             <Input
               type="text"
               value={roomCode}
               onChange={(e) => setRoomCode(e.target.value.toUpperCase())}
-              placeholder="ENTER ROOM CODE"
-              className="font-arcade text-center text-sm bg-background/50 border-secondary/50 tracking-widest"
+              placeholder="Enter room code"
+              className="text-center bg-background tracking-widest"
               maxLength={6}
             />
             <Button 
-              variant="arcadeSecondary" 
+              variant="secondary" 
               size="lg" 
               onClick={handleJoinRoom}
-              className="w-full arcade-button"
+              className="w-full"
             >
-              JOIN GAME
+              Join Game
             </Button>
           </div>
 
           {/* Local 2P Mode */}
-          <div className="stats-panel p-6 space-y-4 rounded-sm border-accent/30">
+          <div className="stats-panel p-6 space-y-4">
             <div className="text-center">
-              <h3 
-                className="font-arcade text-xs text-accent"
-                style={{ textShadow: 'var(--shadow-neon-yellow)' }}
-              >
-                LOCAL 2 PLAYER
+              <h3 className="text-sm font-medium text-foreground">
+                Local 2 Player
               </h3>
             </div>
-            <p className="font-retro text-muted-foreground text-center text-sm">
+            <p className="text-muted-foreground text-center text-sm">
               Play side by side on the same device
             </p>
             <Button 
-              variant="arcadeAccent" 
+              variant="outline" 
               size="lg" 
               onClick={() => setGameStarted(true)}
-              className="w-full arcade-button"
+              className="w-full"
             >
-              START LOCAL GAME
+              Start Local Game
             </Button>
           </div>
         </div>

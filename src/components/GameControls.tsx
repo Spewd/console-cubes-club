@@ -26,40 +26,36 @@ export const GameControls = ({
       <div className="grid grid-cols-3 gap-1">
         <div />
         <Button
-          variant="arcade"
+          variant="secondary"
           size="icon"
           onClick={onRotate}
           disabled={disabled}
-          className="arcade-button"
         >
           <RotateCw className="w-5 h-5" />
         </Button>
         <div />
         
         <Button
-          variant="arcade"
+          variant="secondary"
           size="icon"
           onClick={onMoveLeft}
           disabled={disabled}
-          className="arcade-button"
         >
           <ArrowLeft className="w-5 h-5" />
         </Button>
         <Button
-          variant="arcade"
+          variant="secondary"
           size="icon"
           onClick={onMoveDown}
           disabled={disabled}
-          className="arcade-button"
         >
           <ArrowDown className="w-5 h-5" />
         </Button>
         <Button
-          variant="arcade"
+          variant="secondary"
           size="icon"
           onClick={onMoveRight}
           disabled={disabled}
-          className="arcade-button"
         >
           <ArrowRight className="w-5 h-5" />
         </Button>
@@ -69,25 +65,25 @@ export const GameControls = ({
       <div className="flex gap-2 w-full">
         {onHold && (
           <Button
-            variant="arcadeSecondary"
+            variant="outline"
             size="lg"
             onClick={onHold}
             disabled={disabled}
-            className="arcade-button flex-1"
+            className="flex-1"
           >
             <Archive className="w-5 h-5 mr-1" />
-            HOLD
+            Hold
           </Button>
         )}
         <Button
-          variant="arcadeAccent"
+          variant="default"
           size="lg"
           onClick={onHardDrop}
           disabled={disabled}
-          className="arcade-button flex-1"
+          className="flex-1"
         >
           <ChevronsDown className="w-5 h-5 mr-1" />
-          DROP
+          Drop
         </Button>
       </div>
     </div>
