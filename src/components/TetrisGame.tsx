@@ -4,6 +4,7 @@ import { NextPiece } from './NextPiece';
 import { HoldPiece } from './HoldPiece';
 import { GameStats } from './GameStats';
 import { GameControls } from './GameControls';
+import { ClearFeedback } from './ClearFeedback';
 import { Button } from '@/components/ui/button';
 import { Play, Pause, RotateCcw } from 'lucide-react';
 
@@ -25,7 +26,7 @@ export const TetrisGame = ({ playerName = "Player 1" }: TetrisGameProps) => {
     holdPiece,
   } = useTetris();
 
-  const { board, currentPiece, nextPiece, holdPiece: heldPiece, canHold, score, level, lines, isPlaying, isGameOver, isPaused } = gameState;
+  const { board, currentPiece, nextPiece, holdPiece: heldPiece, canHold, score, level, lines, isPlaying, isGameOver, isPaused, clearEvent } = gameState;
 
   return (
     <div className="flex flex-col lg:flex-row gap-4 lg:gap-6 items-center lg:items-start justify-center">
@@ -42,7 +43,7 @@ export const TetrisGame = ({ playerName = "Player 1" }: TetrisGameProps) => {
       <div className="flex-shrink-0">
         <div className="relative">
           <TetrisBoard board={board} currentPiece={currentPiece} ghostPosition={ghostPosition} />
-          
+          <ClearFeedback clearEvent={clearEvent} />
           {/* Overlay for game states */}
           {!isPlaying && !isGameOver && (
             <div className="absolute inset-0 bg-background/95 flex flex-col items-center justify-center gap-6 z-20 rounded-lg">
