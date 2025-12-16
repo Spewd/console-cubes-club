@@ -228,6 +228,15 @@ const getDropSpeed = (level: number): number => {
   return speeds[Math.min(level, speeds.length - 1)];
 };
 
+export interface ClearEvent {
+  type: 'lines' | 'tspin' | 'tspin-mini' | 'perfect';
+  lines: number;
+  combo: number;
+  isBackToBack: boolean;
+  points: number;
+  timestamp: number;
+}
+
 export interface GameState {
   board: Board;
   currentPiece: Piece | null;
@@ -243,6 +252,7 @@ export interface GameState {
   combo: number;
   lastClearWasDifficult: boolean;
   bag: Exclude<TetrisBlock, null>[];
+  clearEvent: ClearEvent | null;
 }
 
 export const useTetris = () => {
@@ -261,6 +271,7 @@ export const useTetris = () => {
     combo: -1,
     lastClearWasDifficult: false,
     bag: [],
+    clearEvent: null,
   });
   
   const lastActionRef = useRef<LastAction>('none');
@@ -291,6 +302,7 @@ export const useTetris = () => {
       combo: -1,
       lastClearWasDifficult: false,
       bag: bag2,
+      clearEvent: null,
     });
     lastActionRef.current = 'none';
   }, []);
@@ -436,6 +448,19 @@ export const useTetris = () => {
     
     const { piece: nextPiece, newBag } = getRandomPiece(prev.bag);
     
+    // Create clear event for visual feedback
+    let clearEvent: ClearEvent | null = null;
+    if (linesCleared > 0 || tSpin !== 'none' || isPerfectClear) {
+      clearEvent = {
+        type: isPerfectClear ? 'perfect' : tSpin === 'full' ? 'tspin' : tSpin === 'mini' ? 'tspin-mini' : 'lines',
+        lines: linesCleared,
+        combo: newCombo,
+        isBackToBack,
+        points: scoreGain,
+        timestamp: Date.now(),
+      };
+    }
+    
     // Check game over
     if (checkCollision(clearedBoard, prev.nextPiece)) {
       return {
@@ -449,6 +474,7 @@ export const useTetris = () => {
         isGameOver: true,
         combo: newCombo,
         lastClearWasDifficult: linesCleared > 0 ? isDifficultClear : prev.lastClearWasDifficult,
+        clearEvent,
       };
     }
     
@@ -464,6 +490,7 @@ export const useTetris = () => {
       combo: newCombo,
       lastClearWasDifficult: linesCleared > 0 ? isDifficultClear : prev.lastClearWasDifficult,
       bag: newBag,
+      clearEvent,
     };
   }, []);
 
