@@ -13,6 +13,7 @@ const BLOCK_COLORS: Record<Exclude<TetrisBlock, null>, string> = {
   Z: 'bg-tetris-z',
   J: 'bg-tetris-j',
   L: 'bg-tetris-l',
+  G: 'bg-muted-foreground/60',
 };
 
 export const NextPiece = ({ piece }: NextPieceProps) => {

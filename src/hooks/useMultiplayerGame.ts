@@ -49,7 +49,7 @@ const generatePlayerId = (): string => {
   return `guest_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
 };
 
-export const useMultiplayerGame = () => {
+export const useMultiplayerGame = (onGarbageReceived?: (lines: number) => void) => {
   const [state, setState] = useState<MultiplayerState>({
     room: null,
     playerId: '',
@@ -63,6 +63,10 @@ export const useMultiplayerGame = () => {
   const [error, setError] = useState<string | null>(null);
   const channelRef = useRef<RealtimeChannel | null>(null);
   const playerIdRef = useRef<string>('');
+  const onGarbageReceivedRef = useRef(onGarbageReceived);
+  
+  // Keep callback ref updated
+  onGarbageReceivedRef.current = onGarbageReceived;
 
   // Initialize player ID
   useEffect(() => {
@@ -203,6 +207,13 @@ export const useMultiplayerGame = () => {
           }));
         }
       })
+      .on('broadcast', { event: 'garbage' }, ({ payload }) => {
+        // Receive garbage from opponent
+        if (payload.playerNumber !== playerNum && payload.lines > 0) {
+          console.log('Received garbage:', payload.lines);
+          onGarbageReceivedRef.current?.(payload.lines);
+        }
+      })
       .subscribe(async (status) => {
         if (status === 'SUBSCRIBED') {
           await channel.track({
@@ -243,6 +254,20 @@ export const useMultiplayerGame = () => {
       payload: {
         playerNumber: state.playerNumber,
         state: gameState,
+      },
+    });
+  }, [state.playerNumber]);
+
+  const broadcastGarbage = useCallback((lines: number) => {
+    if (!channelRef.current || !state.playerNumber || lines <= 0) return;
+    
+    console.log('Broadcasting garbage:', lines);
+    channelRef.current.send({
+      type: 'broadcast',
+      event: 'garbage',
+      payload: {
+        playerNumber: state.playerNumber,
+        lines,
       },
     });
   }, [state.playerNumber]);
@@ -316,6 +341,7 @@ export const useMultiplayerGame = () => {
     joinRoom,
     leaveRoom,
     broadcastGameState,
+    broadcastGarbage,
     updateScore,
     reportGameOver,
   };
