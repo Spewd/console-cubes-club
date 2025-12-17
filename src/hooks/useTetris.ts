@@ -3,7 +3,7 @@ import { useState, useCallback, useEffect, useMemo, useRef } from 'react';
 export const BOARD_WIDTH = 10;
 export const BOARD_HEIGHT = 20;
 
-export type TetrisBlock = 'I' | 'O' | 'T' | 'S' | 'Z' | 'J' | 'L' | null;
+export type TetrisBlock = 'I' | 'O' | 'T' | 'S' | 'Z' | 'J' | 'L' | 'G' | null;
 
 export interface Position {
   x: number;
@@ -17,7 +17,9 @@ export interface Piece {
   rotationState: number; // 0, 1, 2, 3 for T-spin detection
 }
 
-const SHAPES: Record<Exclude<TetrisBlock, null>, number[][]> = {
+type PlayablePiece = 'I' | 'O' | 'T' | 'S' | 'Z' | 'J' | 'L';
+
+const SHAPES: Record<PlayablePiece, number[][]> = {
   I: [[0, 0, 0, 0], [1, 1, 1, 1], [0, 0, 0, 0], [0, 0, 0, 0]],
   O: [[1, 1], [1, 1]],
   T: [[0, 1, 0], [1, 1, 1], [0, 0, 0]],
@@ -228,12 +230,40 @@ const getDropSpeed = (level: number): number => {
   return speeds[Math.min(level, speeds.length - 1)];
 };
 
+// Calculate garbage lines to send to opponent
+const calculateGarbage = (
+  lines: number, 
+  tSpin: 'none' | 'mini' | 'full',
+  combo: number,
+  isBackToBack: boolean
+): number => {
+  let garbage = 0;
+  
+  // Base garbage per lines cleared
+  if (tSpin === 'full') {
+    garbage = [0, 2, 4, 6][lines] || 0; // T-spin single=2, double=4, triple=6
+  } else if (tSpin === 'mini') {
+    garbage = [0, 0, 1][lines] || 0; // Mini T-spin double=1
+  } else {
+    garbage = [0, 0, 1, 2, 4][lines] || 0; // Single=0, Double=1, Triple=2, Tetris=4
+  }
+  
+  // Back-to-back bonus (+1)
+  if (isBackToBack && garbage > 0) garbage += 1;
+  
+  // Combo bonus
+  if (combo > 0) garbage += Math.floor(combo / 2);
+  
+  return garbage;
+};
+
 export interface ClearEvent {
   type: 'lines' | 'tspin' | 'tspin-mini' | 'perfect';
   lines: number;
   combo: number;
   isBackToBack: boolean;
   points: number;
+  garbageSent: number;
   timestamp: number;
 }
 
@@ -441,6 +471,9 @@ export const useTetris = () => {
     const isDifficultClear = linesCleared === 4 || tSpin !== 'none';
     const isBackToBack = prev.lastClearWasDifficult && isDifficultClear;
     
+    // Calculate garbage to send
+    const garbageSent = calculateGarbage(linesCleared, tSpin, newCombo, isBackToBack);
+    
     const scoreGain = calculateScore(linesCleared, prev.level, tSpin, isPerfectClear, newCombo, isBackToBack) + dropBonus;
     const newScore = prev.score + scoreGain;
     const newLines = prev.lines + linesCleared;
@@ -457,6 +490,7 @@ export const useTetris = () => {
         combo: newCombo,
         isBackToBack,
         points: scoreGain,
+        garbageSent,
         timestamp: Date.now(),
       };
     }
@@ -492,6 +526,34 @@ export const useTetris = () => {
       bag: newBag,
       clearEvent,
     };
+  }, []);
+
+  // Add garbage lines from opponent
+  const addGarbageLines = useCallback((count: number) => {
+    setGameState(prev => {
+      if (!prev.isPlaying || prev.isGameOver || count <= 0) return prev;
+      
+      // Create garbage lines with random gap
+      const gapColumn = Math.floor(Math.random() * BOARD_WIDTH);
+      const createGarbageRow = () => {
+        const row: TetrisBlock[] = Array(BOARD_WIDTH).fill('G' as TetrisBlock);
+        row[gapColumn] = null; // Random gap
+        return row;
+      };
+      
+      // Remove top rows and add garbage at bottom
+      const newBoard = [
+        ...prev.board.slice(count),
+        ...Array(count).fill(null).map(() => createGarbageRow())
+      ];
+      
+      // Check if current piece is now colliding
+      if (prev.currentPiece && checkCollision(newBoard, prev.currentPiece)) {
+        return { ...prev, board: newBoard, isGameOver: true, isPlaying: false };
+      }
+      
+      return { ...prev, board: newBoard };
+    });
   }, []);
 
   const moveDown = useCallback(() => {
@@ -621,5 +683,6 @@ export const useTetris = () => {
     rotate,
     hardDrop,
     holdPiece,
+    addGarbageLines,
   };
 };

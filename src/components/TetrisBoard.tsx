@@ -15,6 +15,7 @@ const BLOCK_COLORS: Record<Exclude<TetrisBlock, null>, string> = {
   Z: 'bg-tetris-z',
   J: 'bg-tetris-j',
   L: 'bg-tetris-l',
+  G: 'bg-muted-foreground/60',
 };
 
 const GHOST_COLORS: Record<Exclude<TetrisBlock, null>, string> = {
@@ -25,6 +26,7 @@ const GHOST_COLORS: Record<Exclude<TetrisBlock, null>, string> = {
   Z: 'border border-tetris-z/40 bg-tetris-z/10',
   J: 'border border-tetris-j/40 bg-tetris-j/10',
   L: 'border border-tetris-l/40 bg-tetris-l/10',
+  G: 'border border-muted-foreground/20 bg-muted-foreground/5',
 };
 
 export const TetrisBoard = ({ board, currentPiece, ghostPosition }: TetrisBoardProps) => {

@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { ArcadeCabinet } from '@/components/ArcadeCabinet';
 import { TetrisGame } from '@/components/TetrisGame';
 import { OpponentBoard } from '@/components/OpponentBoard';
@@ -20,6 +20,14 @@ const Multiplayer = () => {
   const [playerName, setPlayerName] = useState('');
   const [localGameStarted, setLocalGameStarted] = useState(false);
   
+  const tetris = useTetris();
+  
+  // Handle garbage received from opponent
+  const handleGarbageReceived = useCallback((lines: number) => {
+    console.log('Adding garbage lines:', lines);
+    tetris.addGarbageLines(lines);
+  }, [tetris.addGarbageLines]);
+  
   const {
     room,
     playerNumber,
@@ -32,10 +40,12 @@ const Multiplayer = () => {
     joinRoom,
     leaveRoom,
     broadcastGameState,
+    broadcastGarbage,
     reportGameOver,
-  } = useMultiplayerGame();
+  } = useMultiplayerGame(handleGarbageReceived);
 
-  const tetris = useTetris();
+  // Track last clear event to avoid duplicate sends
+  const lastClearTimestampRef = useRef<number>(0);
 
   // Broadcast game state when it changes
   useEffect(() => {
@@ -59,6 +69,18 @@ const Multiplayer = () => {
     tetris.gameState.isGameOver,
     broadcastGameState,
   ]);
+
+  // Send garbage when clearing lines
+  useEffect(() => {
+    const clearEvent = tetris.gameState.clearEvent;
+    if (room && clearEvent && clearEvent.garbageSent > 0) {
+      // Only send if this is a new clear event
+      if (clearEvent.timestamp !== lastClearTimestampRef.current) {
+        lastClearTimestampRef.current = clearEvent.timestamp;
+        broadcastGarbage(clearEvent.garbageSent);
+      }
+    }
+  }, [room, tetris.gameState.clearEvent, broadcastGarbage]);
 
   // Report game over
   useEffect(() => {
