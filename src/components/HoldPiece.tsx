@@ -20,14 +20,14 @@ const BLOCK_COLORS: Record<Exclude<TetrisBlock, null>, string> = {
 export const HoldPiece = ({ piece, canHold }: HoldPieceProps) => {
   return (
     <div className={cn(
-      "stats-panel p-3 transition-opacity",
-      !canHold && "opacity-50"
+      "stats-panel p-4 transition-all duration-200",
+      !canHold && "opacity-40 scale-[0.98]"
     )}>
-      <h3 className="text-xs text-muted-foreground mb-3 text-center">Hold</h3>
-      <div className="flex items-center justify-center min-h-[64px]">
+      <h3 className="text-xs text-muted-foreground mb-3 text-center uppercase tracking-wider font-medium">Hold</h3>
+      <div className="flex items-center justify-center min-h-[68px]">
         {piece && piece.type ? (
           <div 
-            className="grid gap-[2px]"
+            className="grid gap-[2px] animate-scale-in"
             style={{ 
               gridTemplateColumns: `repeat(${piece.shape[0].length}, 14px)`,
             }}
@@ -36,7 +36,7 @@ export const HoldPiece = ({ piece, canHold }: HoldPieceProps) => {
               <div
                 key={index}
                 className={cn(
-                  'w-[14px] h-[14px] rounded-sm',
+                  'w-[14px] h-[14px] rounded-sm transition-colors',
                   cell && piece.type 
                     ? `${BLOCK_COLORS[piece.type]} tetris-block` 
                     : 'bg-transparent'
@@ -45,7 +45,7 @@ export const HoldPiece = ({ piece, canHold }: HoldPieceProps) => {
             ))}
           </div>
         ) : (
-          <div className="text-muted-foreground/50 text-xs">Empty</div>
+          <div className="text-muted-foreground/40 text-xs font-medium">Empty</div>
         )}
       </div>
     </div>

@@ -20,9 +20,9 @@ export const NextPiece = ({ piece }: NextPieceProps) => {
   const { shape, type } = piece;
 
   return (
-    <div className="stats-panel p-3">
-      <h3 className="text-xs text-muted-foreground mb-3 text-center">Next</h3>
-      <div className="flex items-center justify-center min-h-[64px]">
+    <div className="stats-panel p-4">
+      <h3 className="text-xs text-muted-foreground mb-3 text-center uppercase tracking-wider font-medium">Next</h3>
+      <div className="flex items-center justify-center min-h-[68px]">
         <div 
           className="grid gap-[2px]"
           style={{ 
@@ -33,7 +33,7 @@ export const NextPiece = ({ piece }: NextPieceProps) => {
             <div
               key={index}
               className={cn(
-                'w-[14px] h-[14px] rounded-sm',
+                'w-[14px] h-[14px] rounded-sm transition-colors',
                 cell && type 
                   ? `${BLOCK_COLORS[type]} tetris-block` 
                   : 'bg-transparent'
