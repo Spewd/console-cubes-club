@@ -1,10 +1,15 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { ArcadeCabinet } from '@/components/ArcadeCabinet';
-import { TetrisGame } from '@/components/TetrisGame';
+import { TetrisBoard } from '@/components/TetrisBoard';
+import { NextPiece } from '@/components/NextPiece';
+import { HoldPiece } from '@/components/HoldPiece';
+import { GameStats } from '@/components/GameStats';
+import { GameControls } from '@/components/GameControls';
+import { ClearFeedback } from '@/components/ClearFeedback';
 import { OpponentBoard } from '@/components/OpponentBoard';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { ArrowLeft, Users, Wifi, Play, Copy, Loader2 } from 'lucide-react';
+import { ArrowLeft, Users, Wifi, Play, Copy, Loader2, Pause, RotateCcw } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useToast } from '@/hooks/use-toast';
 import { useMultiplayerGame, PlayerState } from '@/hooks/useMultiplayerGame';
@@ -138,6 +143,52 @@ const Multiplayer = () => {
     await leaveRoom();
   };
 
+  // Keyboard controls for multiplayer game
+  useEffect(() => {
+    if (!room || room.status !== 'playing') return;
+
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (tetris.gameState.isGameOver) return;
+
+      switch (e.key) {
+        case 'ArrowLeft':
+          e.preventDefault();
+          tetris.moveLeft();
+          break;
+        case 'ArrowRight':
+          e.preventDefault();
+          tetris.moveRight();
+          break;
+        case 'ArrowDown':
+          e.preventDefault();
+          tetris.moveDown();
+          break;
+        case 'ArrowUp':
+          e.preventDefault();
+          tetris.rotate();
+          break;
+        case ' ':
+          e.preventDefault();
+          tetris.hardDrop();
+          break;
+        case 'c':
+        case 'C':
+        case 'Shift':
+          e.preventDefault();
+          tetris.holdPiece();
+          break;
+        case 'p':
+        case 'P':
+          e.preventDefault();
+          tetris.togglePause();
+          break;
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [room, tetris]);
+
   // Local 2P mode
   if (localGameStarted) {
     return (
@@ -157,7 +208,9 @@ const Multiplayer = () => {
               <h3 className="text-xs text-foreground text-center mb-4">
                 Player 1
               </h3>
-              <TetrisGame playerName="Player 1" />
+              <div className="text-center text-muted-foreground">
+                Local mode not yet implemented with shared state
+              </div>
             </div>
             <div className="stats-panel p-4">
               <h3 className="text-xs text-foreground text-center mb-4">
@@ -218,9 +271,88 @@ const Multiplayer = () => {
               <h3 className="text-sm font-medium text-foreground text-center mb-4">
                 You ({playerNumber === 1 ? room.player1_name : room.player2_name})
               </h3>
-              <TetrisGame 
-                playerName={playerNumber === 1 ? room.player1_name : room.player2_name || 'You'} 
-              />
+              
+              {/* Player's game board rendered directly with shared tetris instance */}
+              <div className="flex flex-col lg:flex-row gap-4 lg:gap-6 items-center lg:items-start justify-center">
+                {/* Left Panel - Hold & Stats */}
+                <div className="hidden lg:flex flex-col gap-3 w-[100px]">
+                  <HoldPiece piece={tetris.gameState.holdPiece} canHold={tetris.gameState.canHold} />
+                  <GameStats score={tetris.gameState.score} level={tetris.gameState.level} lines={tetris.gameState.lines} />
+                </div>
+
+                {/* Center - Game Board */}
+                <div className="flex-shrink-0">
+                  <div className="relative">
+                    <TetrisBoard board={tetris.gameState.board} currentPiece={tetris.gameState.currentPiece} ghostPosition={tetris.ghostPosition} />
+                    <ClearFeedback clearEvent={tetris.gameState.clearEvent} />
+                    
+                    {/* Overlay for game states */}
+                    {!tetris.gameState.isPlaying && !tetris.gameState.isGameOver && (
+                      <div className="absolute inset-0 bg-background/95 flex flex-col items-center justify-center gap-6 z-20 rounded-lg">
+                        <h2 className="text-lg font-medium text-foreground">Press Start</h2>
+                        <Button variant="default" size="lg" onClick={tetris.startGame}>
+                          <Play className="w-5 h-5 mr-2" />
+                          Start Game
+                        </Button>
+                      </div>
+                    )}
+
+                    {tetris.gameState.isPaused && (
+                      <div className="absolute inset-0 bg-background/95 flex flex-col items-center justify-center gap-6 z-20 rounded-lg">
+                        <h2 className="text-xl font-medium text-foreground">Paused</h2>
+                        <Button variant="default" size="lg" onClick={tetris.togglePause}>
+                          <Play className="w-5 h-5 mr-2" />
+                          Resume
+                        </Button>
+                      </div>
+                    )}
+
+                    {tetris.gameState.isGameOver && (
+                      <div className="absolute inset-0 bg-background/95 flex flex-col items-center justify-center gap-6 z-20 rounded-lg">
+                        <h2 className="text-xl font-medium text-destructive">Game Over</h2>
+                        <p className="text-lg text-muted-foreground">{tetris.gameState.score.toLocaleString()}</p>
+                        <Button variant="default" size="lg" onClick={tetris.startGame}>
+                          <RotateCcw className="w-5 h-5 mr-2" />
+                          Play Again
+                        </Button>
+                      </div>
+                    )}
+                  </div>
+                </div>
+
+                {/* Right Panel - Next */}
+                <div className="hidden lg:flex flex-col gap-3 w-[100px]">
+                  <NextPiece piece={tetris.gameState.nextPiece} />
+                  {tetris.gameState.isPlaying && (
+                    <Button variant="outline" onClick={tetris.togglePause} className="text-xs">
+                      {tetris.gameState.isPaused ? <Play className="w-4 h-4 mr-1" /> : <Pause className="w-4 h-4 mr-1" />}
+                      {tetris.gameState.isPaused ? 'Resume' : 'Pause'}
+                    </Button>
+                  )}
+                </div>
+
+                {/* Mobile Stats & Controls */}
+                <div className="lg:hidden w-full max-w-xs space-y-3">
+                  <div className="flex gap-3">
+                    <div className="flex-1">
+                      <HoldPiece piece={tetris.gameState.holdPiece} canHold={tetris.gameState.canHold} />
+                    </div>
+                    <div className="flex-1">
+                      <NextPiece piece={tetris.gameState.nextPiece} />
+                    </div>
+                  </div>
+                  <GameStats score={tetris.gameState.score} level={tetris.gameState.level} lines={tetris.gameState.lines} />
+                  <GameControls
+                    onMoveLeft={tetris.moveLeft}
+                    onMoveRight={tetris.moveRight}
+                    onMoveDown={tetris.moveDown}
+                    onRotate={tetris.rotate}
+                    onHardDrop={tetris.hardDrop}
+                    onHold={tetris.holdPiece}
+                    disabled={!tetris.gameState.isPlaying || tetris.gameState.isPaused}
+                  />
+                </div>
+              </div>
             </div>
             
             <div className="stats-panel p-4">
