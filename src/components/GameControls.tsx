@@ -21,57 +21,61 @@ export const GameControls = ({
   disabled
 }: GameControlsProps) => {
   return (
-    <div className="flex flex-col items-center gap-4 p-4">
+    <div className="flex flex-col items-center gap-5 p-4">
       {/* D-Pad */}
-      <div className="grid grid-cols-3 gap-1">
+      <div className="grid grid-cols-3 gap-2">
         <div />
         <Button
-          variant="secondary"
+          variant="glass"
           size="icon"
           onClick={onRotate}
           disabled={disabled}
+          className="h-14 w-14 rounded-2xl"
         >
-          <RotateCw className="w-5 h-5" />
+          <RotateCw className="w-6 h-6" />
         </Button>
         <div />
         
         <Button
-          variant="secondary"
+          variant="glass"
           size="icon"
           onClick={onMoveLeft}
           disabled={disabled}
+          className="h-14 w-14 rounded-2xl"
         >
-          <ArrowLeft className="w-5 h-5" />
+          <ArrowLeft className="w-6 h-6" />
         </Button>
         <Button
-          variant="secondary"
+          variant="glass"
           size="icon"
           onClick={onMoveDown}
           disabled={disabled}
+          className="h-14 w-14 rounded-2xl"
         >
-          <ArrowDown className="w-5 h-5" />
+          <ArrowDown className="w-6 h-6" />
         </Button>
         <Button
-          variant="secondary"
+          variant="glass"
           size="icon"
           onClick={onMoveRight}
           disabled={disabled}
+          className="h-14 w-14 rounded-2xl"
         >
-          <ArrowRight className="w-5 h-5" />
+          <ArrowRight className="w-6 h-6" />
         </Button>
       </div>
 
       {/* Action Buttons */}
-      <div className="flex gap-2 w-full">
+      <div className="flex gap-3 w-full">
         {onHold && (
           <Button
             variant="outline"
             size="lg"
             onClick={onHold}
             disabled={disabled}
-            className="flex-1"
+            className="flex-1 h-14"
           >
-            <Archive className="w-5 h-5 mr-1" />
+            <Archive className="w-5 h-5 mr-2" />
             Hold
           </Button>
         )}
@@ -80,9 +84,9 @@ export const GameControls = ({
           size="lg"
           onClick={onHardDrop}
           disabled={disabled}
-          className="flex-1"
+          className="flex-1 h-14"
         >
-          <ChevronsDown className="w-5 h-5 mr-1" />
+          <ChevronsDown className="w-5 h-5 mr-2" />
           Drop
         </Button>
       </div>

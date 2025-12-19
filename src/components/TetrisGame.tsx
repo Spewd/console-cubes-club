@@ -6,7 +6,7 @@ import { GameStats } from './GameStats';
 import { GameControls } from './GameControls';
 import { ClearFeedback } from './ClearFeedback';
 import { Button } from '@/components/ui/button';
-import { Play, Pause, RotateCcw } from 'lucide-react';
+import { Play, Pause, RotateCcw, Keyboard } from 'lucide-react';
 
 interface TetrisGameProps {
   playerName?: string;
@@ -29,11 +29,11 @@ export const TetrisGame = ({ playerName = "Player 1" }: TetrisGameProps) => {
   const { board, currentPiece, nextPiece, holdPiece: heldPiece, canHold, score, level, lines, isPlaying, isGameOver, isPaused, clearEvent } = gameState;
 
   return (
-    <div className="flex flex-col lg:flex-row gap-5 lg:gap-8 items-center lg:items-start justify-center p-4">
+    <div className="flex flex-col lg:flex-row gap-6 lg:gap-10 items-center lg:items-start justify-center p-2 md:p-4">
       {/* Left Panel - Hold & Stats */}
-      <div className="hidden lg:flex flex-col gap-4 w-[140px]">
-        <div className="stats-panel p-3 text-center backdrop-blur-sm">
-          <span className="text-xs font-medium tracking-wide text-muted-foreground uppercase">{playerName}</span>
+      <div className="hidden lg:flex flex-col gap-4 w-[160px]">
+        <div className="stats-panel p-3 text-center">
+          <span className="text-xs font-semibold tracking-wider text-muted-foreground uppercase">{playerName}</span>
         </div>
         <HoldPiece piece={heldPiece} canHold={canHold} />
         <GameStats score={score} level={level} lines={lines} />
@@ -42,21 +42,26 @@ export const TetrisGame = ({ playerName = "Player 1" }: TetrisGameProps) => {
       {/* Center - Game Board */}
       <div className="flex-shrink-0">
         <div className="relative group">
-          <div className="absolute -inset-1 bg-gradient-to-b from-border/50 to-transparent rounded-xl opacity-50 group-hover:opacity-70 transition-opacity duration-300" />
+          {/* Glow effect behind board */}
+          <div className="absolute -inset-4 bg-primary/10 rounded-3xl blur-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none" />
+          
           <div className="relative">
             <TetrisBoard board={board} currentPiece={currentPiece} ghostPosition={ghostPosition} />
             <ClearFeedback clearEvent={clearEvent} />
             
             {/* Overlay for game states */}
             {!isPlaying && !isGameOver && (
-              <div className="absolute inset-0 bg-background/98 backdrop-blur-sm flex flex-col items-center justify-center gap-8 z-20 rounded-lg animate-fade-in">
-                <div className="text-center space-y-2">
-                  <h2 className="text-2xl font-semibold text-foreground tracking-tight">
+              <div className="absolute inset-0 glass flex flex-col items-center justify-center gap-8 z-20 rounded-2xl animate-fade-in">
+                <div className="text-center space-y-3">
+                  <div className="w-16 h-16 mx-auto rounded-2xl bg-primary/10 flex items-center justify-center mb-4">
+                    <Play className="w-8 h-8 text-primary" />
+                  </div>
+                  <h2 className="text-3xl font-extrabold text-foreground tracking-tight">
                     Ready?
                   </h2>
-                  <p className="text-sm text-muted-foreground">Press start to begin</p>
+                  <p className="text-sm text-muted-foreground">Press start to begin your game</p>
                 </div>
-                <Button variant="default" size="lg" onClick={startGame} className="px-8 hover-scale">
+                <Button variant="default" size="lg" onClick={startGame} className="px-10 h-14">
                   <Play className="w-5 h-5 mr-2" />
                   Start Game
                 </Button>
@@ -64,14 +69,17 @@ export const TetrisGame = ({ playerName = "Player 1" }: TetrisGameProps) => {
             )}
 
             {isPaused && (
-              <div className="absolute inset-0 bg-background/98 backdrop-blur-sm flex flex-col items-center justify-center gap-8 z-20 rounded-lg animate-fade-in">
-                <div className="text-center space-y-2">
-                  <h2 className="text-2xl font-semibold text-foreground tracking-tight">
+              <div className="absolute inset-0 glass flex flex-col items-center justify-center gap-8 z-20 rounded-2xl animate-fade-in">
+                <div className="text-center space-y-3">
+                  <div className="w-16 h-16 mx-auto rounded-2xl bg-chart-4/10 flex items-center justify-center mb-4">
+                    <Pause className="w-8 h-8 text-chart-4" />
+                  </div>
+                  <h2 className="text-3xl font-extrabold text-foreground tracking-tight">
                     Paused
                   </h2>
                   <p className="text-sm text-muted-foreground">Take your time</p>
                 </div>
-                <Button variant="default" size="lg" onClick={togglePause} className="px-8 hover-scale">
+                <Button variant="default" size="lg" onClick={togglePause} className="px-10 h-14">
                   <Play className="w-5 h-5 mr-2" />
                   Resume
                 </Button>
@@ -79,15 +87,15 @@ export const TetrisGame = ({ playerName = "Player 1" }: TetrisGameProps) => {
             )}
 
             {isGameOver && (
-              <div className="absolute inset-0 bg-background/98 backdrop-blur-sm flex flex-col items-center justify-center gap-6 z-20 rounded-lg animate-fade-in">
-                <div className="text-center space-y-3">
-                  <h2 className="text-2xl font-semibold text-destructive tracking-tight">Game Over</h2>
+              <div className="absolute inset-0 glass flex flex-col items-center justify-center gap-6 z-20 rounded-2xl animate-fade-in">
+                <div className="text-center space-y-4">
+                  <h2 className="text-3xl font-extrabold text-destructive tracking-tight">Game Over</h2>
                   <div className="space-y-1">
-                    <p className="text-xs text-muted-foreground uppercase tracking-wider">Final Score</p>
-                    <p className="text-3xl font-bold text-foreground">{score.toLocaleString()}</p>
+                    <p className="text-[10px] text-muted-foreground uppercase tracking-widest font-semibold">Final Score</p>
+                    <p className="text-5xl font-extrabold text-gradient-accent tabular-nums">{score.toLocaleString()}</p>
                   </div>
                 </div>
-                <Button variant="default" size="lg" onClick={startGame} className="px-8 hover-scale">
+                <Button variant="default" size="lg" onClick={startGame} className="px-10 h-14">
                   <RotateCcw className="w-5 h-5 mr-2" />
                   Play Again
                 </Button>
@@ -98,34 +106,37 @@ export const TetrisGame = ({ playerName = "Player 1" }: TetrisGameProps) => {
       </div>
 
       {/* Right Panel - Next & Controls */}
-      <div className="hidden lg:flex flex-col gap-4 w-[140px]">
+      <div className="hidden lg:flex flex-col gap-4 w-[160px]">
         <NextPiece piece={nextPiece} />
         
         <div className="stats-panel p-4">
-          <h3 className="text-xs text-muted-foreground tracking-wider mb-3 text-center uppercase font-medium">Controls</h3>
-          <div className="text-xs text-muted-foreground/80 space-y-2 font-mono">
+          <div className="flex items-center gap-2 mb-4">
+            <Keyboard className="w-4 h-4 text-muted-foreground" />
+            <h3 className="text-[10px] text-muted-foreground tracking-widest uppercase font-semibold">Controls</h3>
+          </div>
+          <div className="text-xs text-muted-foreground space-y-2.5">
             <div className="flex justify-between items-center">
-              <span className="text-foreground/70">← →</span>
+              <span className="px-2 py-0.5 rounded bg-secondary text-foreground font-mono text-[10px]">← →</span>
               <span>Move</span>
             </div>
             <div className="flex justify-between items-center">
-              <span className="text-foreground/70">↑</span>
+              <span className="px-2 py-0.5 rounded bg-secondary text-foreground font-mono text-[10px]">↑</span>
               <span>Rotate</span>
             </div>
             <div className="flex justify-between items-center">
-              <span className="text-foreground/70">↓</span>
+              <span className="px-2 py-0.5 rounded bg-secondary text-foreground font-mono text-[10px]">↓</span>
               <span>Soft Drop</span>
             </div>
             <div className="flex justify-between items-center">
-              <span className="text-foreground/70">Space</span>
+              <span className="px-2 py-0.5 rounded bg-secondary text-foreground font-mono text-[10px]">Space</span>
               <span>Hard Drop</span>
             </div>
             <div className="flex justify-between items-center">
-              <span className="text-foreground/70">C</span>
+              <span className="px-2 py-0.5 rounded bg-secondary text-foreground font-mono text-[10px]">C</span>
               <span>Hold</span>
             </div>
             <div className="flex justify-between items-center">
-              <span className="text-foreground/70">P</span>
+              <span className="px-2 py-0.5 rounded bg-secondary text-foreground font-mono text-[10px]">P</span>
               <span>Pause</span>
             </div>
           </div>
@@ -135,7 +146,7 @@ export const TetrisGame = ({ playerName = "Player 1" }: TetrisGameProps) => {
           <Button 
             variant="outline" 
             onClick={togglePause}
-            className="text-xs w-full hover-scale"
+            className="w-full"
           >
             {isPaused ? <Play className="w-4 h-4 mr-2" /> : <Pause className="w-4 h-4 mr-2" />}
             {isPaused ? 'Resume' : 'Pause'}
