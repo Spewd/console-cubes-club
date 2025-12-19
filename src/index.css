@@ -1,81 +1,83 @@
-@import url("https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap");
+@import url("https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap");
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
-/* Minimalist Dark Mode Design System */
+/* Hyper-Modern Dark Design System */
 
 @layer base {
   :root {
-    --background: 0 0% 7%;
-    --foreground: 0 0% 90%;
+    --background: 240 10% 4%;
+    --foreground: 0 0% 98%;
 
-    --card: 0 0% 10%;
-    --card-foreground: 0 0% 90%;
+    --card: 240 10% 6%;
+    --card-foreground: 0 0% 98%;
 
-    --popover: 0 0% 10%;
-    --popover-foreground: 0 0% 90%;
+    --popover: 240 10% 6%;
+    --popover-foreground: 0 0% 98%;
 
-    --primary: 0 0% 90%;
-    --primary-foreground: 0 0% 7%;
+    --primary: 262 83% 58%;
+    --primary-foreground: 0 0% 100%;
 
-    --secondary: 0 0% 15%;
-    --secondary-foreground: 0 0% 90%;
+    --secondary: 240 10% 12%;
+    --secondary-foreground: 0 0% 98%;
 
-    --muted: 0 0% 15%;
-    --muted-foreground: 0 0% 55%;
+    --muted: 240 10% 14%;
+    --muted-foreground: 240 5% 50%;
 
-    --accent: 0 0% 20%;
-    --accent-foreground: 0 0% 90%;
+    --accent: 262 83% 58%;
+    --accent-foreground: 0 0% 100%;
 
-    --destructive: 0 50% 45%;
+    --destructive: 0 62% 55%;
     --destructive-foreground: 0 0% 100%;
 
-    --border: 0 0% 18%;
-    --input: 0 0% 15%;
-    --ring: 0 0% 40%;
+    --border: 240 10% 16%;
+    --input: 240 10% 12%;
+    --ring: 262 83% 58%;
 
-    --radius: 0.5rem;
+    --radius: 1rem;
 
-    /* Tetris block colors - matte */
-    --tetris-i: 185 35% 45%;
-    --tetris-o: 45 35% 50%;
-    --tetris-t: 280 30% 50%;
-    --tetris-s: 140 30% 45%;
-    --tetris-z: 0 40% 50%;
-    --tetris-j: 220 35% 50%;
-    --tetris-l: 25 40% 50%;
+    /* Tetris block colors - vibrant neon */
+    --tetris-i: 185 90% 55%;
+    --tetris-o: 45 95% 55%;
+    --tetris-t: 280 85% 60%;
+    --tetris-s: 145 80% 50%;
+    --tetris-z: 0 85% 55%;
+    --tetris-j: 220 90% 55%;
+    --tetris-l: 25 95% 55%;
 
-    /* Screen */
-    --screen-bg: 0 0% 5%;
-    --cabinet-bg: 0 0% 8%;
-    --cabinet-accent: 0 0% 12%;
+    /* Glass & glow */
+    --glass-bg: 240 10% 8% / 0.7;
+    --glass-border: 0 0% 100% / 0.08;
+    --glow-primary: 262 83% 58% / 0.4;
+    --glow-soft: 262 83% 58% / 0.15;
 
-    --sidebar-background: 0 0% 8%;
-    --sidebar-foreground: 0 0% 90%;
-    --sidebar-primary: 0 0% 90%;
-    --sidebar-primary-foreground: 0 0% 7%;
-    --sidebar-accent: 0 0% 20%;
-    --sidebar-accent-foreground: 0 0% 90%;
-    --sidebar-border: 0 0% 18%;
-    --sidebar-ring: 0 0% 40%;
+    --sidebar-background: 240 10% 5%;
+    --sidebar-foreground: 0 0% 98%;
+    --sidebar-primary: 262 83% 58%;
+    --sidebar-primary-foreground: 0 0% 100%;
+    --sidebar-accent: 240 10% 14%;
+    --sidebar-accent-foreground: 0 0% 98%;
+    --sidebar-border: 240 10% 16%;
+    --sidebar-ring: 262 83% 58%;
 
-    --chart-1: 185 35% 45%;
-    --chart-2: 140 30% 45%;
-    --chart-3: 280 30% 50%;
-    --chart-4: 45 35% 50%;
-    --chart-5: 0 40% 50%;
+    --chart-1: 185 90% 55%;
+    --chart-2: 145 80% 50%;
+    --chart-3: 280 85% 60%;
+    --chart-4: 45 95% 55%;
+    --chart-5: 0 85% 55%;
 
-    --font-main: 'Inter', sans-serif;
+    --font-main: 'Inter', system-ui, sans-serif;
 
-    --shadow-2xs: 0 1px 2px 0 hsl(0 0% 0% / 0.05);
-    --shadow-xs: 0 1px 3px 0 hsl(0 0% 0% / 0.1);
-    --shadow-sm: 0 2px 4px 0 hsl(0 0% 0% / 0.1);
-    --shadow: 0 4px 6px -1px hsl(0 0% 0% / 0.1);
-    --shadow-md: 0 6px 10px -2px hsl(0 0% 0% / 0.1);
-    --shadow-lg: 0 10px 15px -3px hsl(0 0% 0% / 0.1);
-    --shadow-xl: 0 20px 25px -5px hsl(0 0% 0% / 0.1);
-    --shadow-2xl: 0 25px 50px -12px hsl(0 0% 0% / 0.25);
+    --shadow-2xs: 0 1px 2px 0 hsl(0 0% 0% / 0.1);
+    --shadow-xs: 0 1px 3px 0 hsl(0 0% 0% / 0.2);
+    --shadow-sm: 0 2px 6px 0 hsl(0 0% 0% / 0.2);
+    --shadow: 0 4px 12px -2px hsl(0 0% 0% / 0.25);
+    --shadow-md: 0 8px 20px -4px hsl(0 0% 0% / 0.3);
+    --shadow-lg: 0 16px 32px -8px hsl(0 0% 0% / 0.35);
+    --shadow-xl: 0 24px 48px -12px hsl(0 0% 0% / 0.4);
+    --shadow-2xl: 0 32px 64px -16px hsl(0 0% 0% / 0.5);
+    --shadow-glow: 0 0 40px hsl(var(--glow-primary));
   }
 }
 
@@ -91,41 +93,108 @@
 
   h1, h2, h3, h4, h5, h6 {
     font-family: var(--font-main);
-    @apply font-semibold tracking-tight;
+    @apply font-bold tracking-tight;
   }
 }
 
 @layer utilities {
+  .glass {
+    background: hsl(var(--glass-bg));
+    backdrop-filter: blur(20px) saturate(180%);
+    -webkit-backdrop-filter: blur(20px) saturate(180%);
+    border: 1px solid hsl(var(--glass-border));
+  }
+
+  .glass-subtle {
+    background: hsl(240 10% 6% / 0.6);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border: 1px solid hsl(var(--glass-border));
+  }
+
+  .glow-ring {
+    box-shadow: 0 0 0 1px hsl(var(--primary) / 0.3), 0 0 20px hsl(var(--glow-soft));
+  }
+
+  .glow-strong {
+    box-shadow: 0 0 30px hsl(var(--glow-primary)), 0 0 60px hsl(var(--glow-soft));
+  }
+
   .game-container {
-    @apply bg-card rounded-lg;
+    @apply glass rounded-2xl;
   }
 
   .tetris-block {
-    @apply rounded-sm;
-    box-shadow: inset 0 1px 0 hsl(0 0% 100% / 0.15);
+    @apply rounded-[3px];
+    box-shadow: 
+      inset 0 1px 0 hsl(0 0% 100% / 0.35),
+      inset 0 -1px 0 hsl(0 0% 0% / 0.2),
+      0 2px 4px hsl(0 0% 0% / 0.3);
   }
 
   .game-board-container {
-    @apply bg-background rounded-lg;
+    @apply bg-background/50 rounded-xl;
   }
 
   .game-board-border {
-    @apply border border-border rounded-lg;
+    @apply rounded-2xl glow-ring;
+    background: linear-gradient(145deg, hsl(240 10% 8%), hsl(240 10% 5%));
   }
 
   .stats-panel {
-    @apply bg-card border border-border rounded-lg;
+    @apply glass rounded-xl transition-all duration-300;
   }
 
-  .stats-panel-accent {
-    @apply bg-card border border-border rounded-lg;
+  .stats-panel:hover {
+    background: hsl(240 10% 10% / 0.8);
+    border-color: hsl(var(--primary) / 0.2);
+  }
+
+  .tactile-button {
+    @apply relative transition-all duration-150;
+    transform-style: preserve-3d;
+  }
+
+  .tactile-button::before {
+    content: '';
+    @apply absolute inset-0 rounded-[inherit];
+    background: linear-gradient(180deg, hsl(0 0% 100% / 0.1) 0%, transparent 50%);
+    pointer-events: none;
+  }
+
+  .tactile-button:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 24px hsl(0 0% 0% / 0.4);
+  }
+
+  .tactile-button:active {
+    transform: translateY(1px);
+    box-shadow: 0 2px 8px hsl(0 0% 0% / 0.3);
+  }
+
+  .text-gradient {
+    background: linear-gradient(135deg, hsl(var(--foreground)) 0%, hsl(var(--muted-foreground)) 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+
+  .text-gradient-accent {
+    background: linear-gradient(135deg, hsl(var(--primary)) 0%, hsl(280 90% 70%) 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+
+  .hover-lift {
+    @apply transition-transform duration-200;
+  }
+
+  .hover-lift:hover {
+    transform: translateY(-4px);
   }
 
   .arcade-button {
-    @apply transition-all duration-150;
-  }
-
-  .arcade-button:active {
-    transform: scale(0.98);
+    @apply tactile-button;
   }
 }
