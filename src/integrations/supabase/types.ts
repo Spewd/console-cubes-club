@@ -22,9 +22,11 @@ export type Database = {
           player1_id: string
           player1_name: string
           player1_score: number
+          player1_user_id: string | null
           player2_id: string | null
           player2_name: string | null
           player2_score: number
+          player2_user_id: string | null
           status: string
           updated_at: string
           winner: string | null
@@ -36,9 +38,11 @@ export type Database = {
           player1_id: string
           player1_name?: string
           player1_score?: number
+          player1_user_id?: string | null
           player2_id?: string | null
           player2_name?: string | null
           player2_score?: number
+          player2_user_id?: string | null
           status?: string
           updated_at?: string
           winner?: string | null
@@ -50,9 +54,11 @@ export type Database = {
           player1_id?: string
           player1_name?: string
           player1_score?: number
+          player1_user_id?: string | null
           player2_id?: string | null
           player2_name?: string | null
           player2_score?: number
+          player2_user_id?: string | null
           status?: string
           updated_at?: string
           winner?: string | null
