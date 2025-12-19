@@ -39,6 +39,7 @@ const Multiplayer = () => {
     opponentState,
     opponentConnected,
     isReady,
+    isAuthenticating,
     loading,
     error,
     createRoom,
@@ -417,6 +418,18 @@ const Multiplayer = () => {
               {opponentConnected && <p className="text-primary">Opponent connected!</p>}
             </div>
           </div>
+        </div>
+      </ArcadeCabinet>
+    );
+  }
+
+  // Show loading state while authenticating
+  if (isAuthenticating) {
+    return (
+      <ArcadeCabinet title="Multiplayer">
+        <div className="max-w-md mx-auto p-6 flex flex-col items-center justify-center min-h-[400px] gap-4">
+          <Loader2 className="w-8 h-8 animate-spin text-muted-foreground" />
+          <p className="text-muted-foreground">Connecting...</p>
         </div>
       </ArcadeCabinet>
     );

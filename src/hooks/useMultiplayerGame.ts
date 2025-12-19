@@ -1,7 +1,7 @@
 import { useState, useCallback, useEffect, useRef } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { Board, TetrisBlock, BOARD_WIDTH, BOARD_HEIGHT } from '@/hooks/useTetris';
-import type { RealtimeChannel } from '@supabase/supabase-js';
+import type { RealtimeChannel, User } from '@supabase/supabase-js';
 
 export interface PlayerState {
   board: Board;
@@ -17,8 +17,10 @@ export interface GameRoom {
   status: 'waiting' | 'playing' | 'finished';
   player1_id: string;
   player1_name: string;
+  player1_user_id: string;
   player2_id: string | null;
   player2_name: string | null;
+  player2_user_id: string | null;
   player1_score: number;
   player2_score: number;
   winner: 'player1' | 'player2' | 'draw' | null;
@@ -27,10 +29,12 @@ export interface GameRoom {
 interface MultiplayerState {
   room: GameRoom | null;
   playerId: string;
+  userId: string | null;
   playerNumber: 1 | 2 | null;
   opponentState: PlayerState | null;
   opponentConnected: boolean;
   isReady: boolean;
+  isAuthenticating: boolean;
 }
 
 const createEmptyBoard = (): Board => 
@@ -53,42 +57,100 @@ export const useMultiplayerGame = (onGarbageReceived?: (lines: number) => void) 
   const [state, setState] = useState<MultiplayerState>({
     room: null,
     playerId: '',
+    userId: null,
     playerNumber: null,
     opponentState: null,
     opponentConnected: false,
     isReady: false,
+    isAuthenticating: true,
   });
   
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const channelRef = useRef<RealtimeChannel | null>(null);
   const playerIdRef = useRef<string>('');
+  const userIdRef = useRef<string | null>(null);
   const onGarbageReceivedRef = useRef(onGarbageReceived);
   
   // Keep callback ref updated
   onGarbageReceivedRef.current = onGarbageReceived;
 
-  // Initialize player ID
+  // Initialize with anonymous authentication
   useEffect(() => {
-    const storedId = localStorage.getItem('tetris_player_id');
-    if (storedId) {
-      playerIdRef.current = storedId;
-      setState(prev => ({ ...prev, playerId: storedId }));
-    } else {
-      const newId = generatePlayerId();
-      localStorage.setItem('tetris_player_id', newId);
-      playerIdRef.current = newId;
-      setState(prev => ({ ...prev, playerId: newId }));
-    }
+    const initAuth = async () => {
+      try {
+        // Check for existing session first
+        const { data: { session } } = await supabase.auth.getSession();
+        
+        if (session?.user) {
+          userIdRef.current = session.user.id;
+          playerIdRef.current = generatePlayerId();
+          setState(prev => ({ 
+            ...prev, 
+            userId: session.user.id,
+            playerId: playerIdRef.current,
+            isAuthenticating: false 
+          }));
+        } else {
+          // Sign in anonymously for guest multiplayer
+          const { data, error: authError } = await supabase.auth.signInAnonymously();
+          
+          if (authError) {
+            console.error('Anonymous auth failed:', authError);
+            setError('Failed to authenticate. Please try again.');
+            setState(prev => ({ ...prev, isAuthenticating: false }));
+            return;
+          }
+          
+          if (data.user) {
+            userIdRef.current = data.user.id;
+            playerIdRef.current = generatePlayerId();
+            setState(prev => ({ 
+              ...prev, 
+              userId: data.user!.id,
+              playerId: playerIdRef.current,
+              isAuthenticating: false 
+            }));
+          }
+        }
+      } catch (err) {
+        console.error('Auth initialization failed:', err);
+        setError('Failed to initialize authentication');
+        setState(prev => ({ ...prev, isAuthenticating: false }));
+      }
+    };
+
+    initAuth();
+
+    // Listen for auth state changes
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+      if (session?.user) {
+        userIdRef.current = session.user.id;
+        setState(prev => ({ ...prev, userId: session.user.id }));
+      } else {
+        userIdRef.current = null;
+        setState(prev => ({ ...prev, userId: null }));
+      }
+    });
+
+    return () => {
+      subscription.unsubscribe();
+    };
   }, []);
 
   const createRoom = useCallback(async (playerName: string = 'Player 1') => {
+    if (!userIdRef.current) {
+      setError('Not authenticated. Please refresh the page.');
+      return null;
+    }
+
     setLoading(true);
     setError(null);
     
     try {
       const code = generateRoomCode();
       const playerId = playerIdRef.current;
+      const userId = userIdRef.current;
       
       const { data, error: insertError } = await supabase
         .from('game_rooms')
@@ -96,6 +158,7 @@ export const useMultiplayerGame = (onGarbageReceived?: (lines: number) => void) 
           code,
           player1_id: playerId,
           player1_name: playerName,
+          player1_user_id: userId,
           status: 'waiting',
         })
         .select()
@@ -123,11 +186,17 @@ export const useMultiplayerGame = (onGarbageReceived?: (lines: number) => void) 
   }, []);
 
   const joinRoom = useCallback(async (code: string, playerName: string = 'Player 2') => {
+    if (!userIdRef.current) {
+      setError('Not authenticated. Please refresh the page.');
+      return null;
+    }
+
     setLoading(true);
     setError(null);
     
     try {
       const playerId = playerIdRef.current;
+      const userId = userIdRef.current;
       
       // Find the room
       const { data: room, error: findError } = await supabase
@@ -147,6 +216,7 @@ export const useMultiplayerGame = (onGarbageReceived?: (lines: number) => void) 
         .update({
           player2_id: playerId,
           player2_name: playerName,
+          player2_user_id: userId,
           status: 'playing',
         })
         .eq('id', room.id)
@@ -217,7 +287,7 @@ export const useMultiplayerGame = (onGarbageReceived?: (lines: number) => void) 
       .subscribe(async (status) => {
         if (status === 'SUBSCRIBED') {
           await channel.track({
-            playerId: playerIdRef.current,
+            userId: userIdRef.current,
             playerNumber: playerNum,
             online_at: new Date().toISOString(),
           });
@@ -314,14 +384,14 @@ export const useMultiplayerGame = (onGarbageReceived?: (lines: number) => void) 
       }
     }
     
-    setState({
+    setState(prev => ({
+      ...prev,
       room: null,
-      playerId: playerIdRef.current,
       playerNumber: null,
       opponentState: null,
       opponentConnected: false,
       isReady: false,
-    });
+    }));
   }, [state.room, state.playerNumber]);
 
   // Cleanup on unmount
