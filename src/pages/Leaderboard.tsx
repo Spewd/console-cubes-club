@@ -1,20 +1,16 @@
+import { useState, useEffect } from 'react';
 import { ArcadeCabinet } from '@/components/ArcadeCabinet';
 import { Button } from '@/components/ui/button';
-import { ArrowLeft, Trophy, Medal, Award } from 'lucide-react';
+import { ArrowLeft, Trophy, Medal, Award, Loader2 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
+import { supabase } from '@/integrations/supabase/client';
 
-const mockLeaderboard = [
-  { rank: 1, name: "ACE", score: 999999, level: 15 },
-  { rank: 2, name: "PRO", score: 850000, level: 14 },
-  { rank: 3, name: "MAX", score: 720000, level: 13 },
-  { rank: 4, name: "ZAP", score: 650000, level: 12 },
-  { rank: 5, name: "REX", score: 580000, level: 11 },
-  { rank: 6, name: "JET", score: 520000, level: 10 },
-  { rank: 7, name: "SAM", score: 480000, level: 10 },
-  { rank: 8, name: "KAI", score: 420000, level: 9 },
-  { rank: 9, name: "LUX", score: 380000, level: 8 },
-  { rank: 10, name: "NEO", score: 350000, level: 8 },
-];
+interface LeaderboardEntry {
+  rank: number;
+  name: string;
+  score: number;
+  level: number;
+}
 
 const getRankIcon = (rank: number) => {
   switch (rank) {
@@ -31,6 +27,67 @@ const getRankIcon = (rank: number) => {
 
 const Leaderboard = () => {
   const navigate = useNavigate();
+  const [leaderboard, setLeaderboard] = useState<LeaderboardEntry[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    fetchLeaderboard();
+  }, []);
+
+  const fetchLeaderboard = async () => {
+    try {
+      // Get top 10 high scores with profile info
+      const { data: scores, error } = await supabase
+        .from('high_scores')
+        .select(`
+          score,
+          level,
+          user_id
+        `)
+        .order('score', { ascending: false })
+        .limit(10);
+
+      if (error) {
+        console.error('Error fetching scores:', error);
+        setLoading(false);
+        return;
+      }
+
+      if (!scores || scores.length === 0) {
+        setLeaderboard([]);
+        setLoading(false);
+        return;
+      }
+
+      // Get unique user IDs
+      const userIds = [...new Set(scores.map(s => s.user_id))];
+
+      // Fetch profiles for these users
+      const { data: profiles, error: profilesError } = await supabase
+        .from('profiles')
+        .select('id, username')
+        .in('id', userIds);
+
+      if (profilesError) {
+        console.error('Error fetching profiles:', profilesError);
+      }
+
+      const profileMap = new Map(profiles?.map(p => [p.id, p.username]) || []);
+
+      const entries: LeaderboardEntry[] = scores.map((score, index) => ({
+        rank: index + 1,
+        name: profileMap.get(score.user_id) || 'Unknown',
+        score: score.score,
+        level: score.level
+      }));
+
+      setLeaderboard(entries);
+    } catch (err) {
+      console.error('Error:', err);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   return (
     <ArcadeCabinet title="High Scores">
@@ -52,40 +109,54 @@ const Leaderboard = () => {
             <div className="w-16 h-px bg-border mx-auto mt-3" />
           </div>
 
-          <div className="space-y-1">
-            {/* Header */}
-            <div className="grid grid-cols-12 gap-2 px-3 py-2 border-b border-border">
-              <div className="col-span-2 text-xs text-muted-foreground">Rank</div>
-              <div className="col-span-4 text-xs text-muted-foreground">Name</div>
-              <div className="col-span-4 text-xs text-muted-foreground text-right">Score</div>
-              <div className="col-span-2 text-xs text-muted-foreground text-right">Lvl</div>
+          {loading ? (
+            <div className="flex items-center justify-center py-12">
+              <Loader2 className="w-8 h-8 animate-spin text-primary" />
             </div>
-
-            {/* Entries */}
-            {mockLeaderboard.map((entry) => (
-              <div
-                key={entry.rank}
-                className="grid grid-cols-12 gap-2 px-3 py-3 rounded hover:bg-accent/50 transition-colors"
-              >
-                <div className="col-span-2 flex items-center justify-center">
-                  {getRankIcon(entry.rank)}
-                </div>
-                <div className="col-span-4 text-sm flex items-center text-foreground">
-                  {entry.name}
-                </div>
-                <div className="col-span-4 text-sm text-right text-foreground">
-                  {entry.score.toLocaleString()}
-                </div>
-                <div className="col-span-2 text-sm text-right text-muted-foreground">
-                  {entry.level}
-                </div>
+          ) : leaderboard.length === 0 ? (
+            <div className="text-center py-12">
+              <Trophy className="w-12 h-12 text-muted-foreground mx-auto mb-4" />
+              <p className="text-muted-foreground">No scores yet!</p>
+              <p className="text-sm text-muted-foreground mt-2">
+                Be the first to set a high score.
+              </p>
+            </div>
+          ) : (
+            <div className="space-y-1">
+              {/* Header */}
+              <div className="grid grid-cols-12 gap-2 px-3 py-2 border-b border-border">
+                <div className="col-span-2 text-xs text-muted-foreground">Rank</div>
+                <div className="col-span-4 text-xs text-muted-foreground">Name</div>
+                <div className="col-span-4 text-xs text-muted-foreground text-right">Score</div>
+                <div className="col-span-2 text-xs text-muted-foreground text-right">Lvl</div>
               </div>
-            ))}
-          </div>
+
+              {/* Entries */}
+              {leaderboard.map((entry) => (
+                <div
+                  key={entry.rank}
+                  className="grid grid-cols-12 gap-2 px-3 py-3 rounded hover:bg-accent/50 transition-colors"
+                >
+                  <div className="col-span-2 flex items-center justify-center">
+                    {getRankIcon(entry.rank)}
+                  </div>
+                  <div className="col-span-4 text-sm flex items-center text-foreground">
+                    {entry.name}
+                  </div>
+                  <div className="col-span-4 text-sm text-right text-foreground">
+                    {entry.score.toLocaleString()}
+                  </div>
+                  <div className="col-span-2 text-sm text-right text-muted-foreground">
+                    {entry.level}
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
 
           <div className="mt-6 text-center">
             <p className="text-muted-foreground text-sm">
-              Login to save your scores
+              Login and play to save your scores!
             </p>
           </div>
         </div>

@@ -1,26 +1,103 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { ArcadeCabinet } from '@/components/ArcadeCabinet';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { ArrowLeft, User, Lock, UserPlus, LogIn } from 'lucide-react';
+import { ArrowLeft, User, Lock, UserPlus, LogIn, Mail, Loader2 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useToast } from '@/hooks/use-toast';
+import { useAuth } from '@/hooks/useAuth';
 
 const Login = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
+  const { signIn, signUp, user, loading } = useAuth();
+  
   const [isLogin, setIsLogin] = useState(true);
-  const [username, setUsername] = useState('');
+  const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [username, setUsername] = useState('');
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  // Redirect if already logged in
+  useEffect(() => {
+    if (user && !loading) {
+      navigate('/');
+    }
+  }, [user, loading, navigate]);
+
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
-    toast({
-      title: isLogin ? "Login" : "Registration",
-      description: "Connect Lovable Cloud to enable authentication!",
-    });
+    setIsSubmitting(true);
+
+    try {
+      if (isLogin) {
+        const { error } = await signIn(email, password);
+        if (error) {
+          toast({
+            title: "Login Failed",
+            description: error.message,
+            variant: "destructive"
+          });
+        } else {
+          toast({
+            title: "Welcome back!",
+            description: "Successfully logged in.",
+          });
+          navigate('/');
+        }
+      } else {
+        if (!username.trim()) {
+          toast({
+            title: "Username Required",
+            description: "Please enter a username.",
+            variant: "destructive"
+          });
+          setIsSubmitting(false);
+          return;
+        }
+
+        const { error } = await signUp(email, password, username);
+        if (error) {
+          if (error.message.includes('already registered')) {
+            toast({
+              title: "Account Exists",
+              description: "This email is already registered. Try logging in instead.",
+              variant: "destructive"
+            });
+          } else {
+            toast({
+              title: "Registration Failed",
+              description: error.message,
+              variant: "destructive"
+            });
+          }
+        } else {
+          toast({
+            title: "Account Created!",
+            description: "Check your email to confirm your account, or you may be logged in automatically.",
+          });
+        }
+      }
+    } catch (err) {
+      toast({
+        title: "Error",
+        description: "An unexpected error occurred.",
+        variant: "destructive"
+      });
+    } finally {
+      setIsSubmitting(false);
+    }
   };
+
+  if (loading) {
+    return (
+      <ArcadeCabinet title="Loading...">
+        <div className="flex items-center justify-center min-h-[400px]">
+          <Loader2 className="w-8 h-8 animate-spin text-primary" />
+        </div>
+      </ArcadeCabinet>
+    );
+  }
 
   return (
     <ArcadeCabinet title={isLogin ? "Login" : "Register"}>
@@ -43,18 +120,37 @@ const Login = () => {
           </div>
 
           <form onSubmit={handleSubmit} className="space-y-4">
+            {!isLogin && (
+              <div className="space-y-2">
+                <label className="text-xs text-muted-foreground flex items-center gap-2">
+                  <User className="w-3 h-3" />
+                  Username
+                </label>
+                <Input
+                  type="text"
+                  value={username}
+                  onChange={(e) => setUsername(e.target.value)}
+                  placeholder="Enter username"
+                  className="bg-background"
+                  required={!isLogin}
+                  disabled={isSubmitting}
+                />
+              </div>
+            )}
+
             <div className="space-y-2">
               <label className="text-xs text-muted-foreground flex items-center gap-2">
-                <User className="w-3 h-3" />
-                Username
+                <Mail className="w-3 h-3" />
+                Email
               </label>
               <Input
-                type="text"
-                value={username}
-                onChange={(e) => setUsername(e.target.value)}
-                placeholder="Enter username"
+                type="email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                placeholder="Enter email"
                 className="bg-background"
                 required
+                disabled={isSubmitting}
               />
             </div>
 
@@ -70,6 +166,8 @@ const Login = () => {
                 placeholder="Enter password"
                 className="bg-background"
                 required
+                minLength={6}
+                disabled={isSubmitting}
               />
             </div>
 
@@ -78,8 +176,11 @@ const Login = () => {
               variant="default" 
               size="lg" 
               className="w-full"
+              disabled={isSubmitting}
             >
-              {isLogin ? (
+              {isSubmitting ? (
+                <Loader2 className="w-5 h-5 animate-spin" />
+              ) : isLogin ? (
                 <>
                   <LogIn className="w-5 h-5 mr-2" />
                   Login
@@ -98,6 +199,7 @@ const Login = () => {
               variant="ghost"
               onClick={() => setIsLogin(!isLogin)}
               className="text-sm text-muted-foreground"
+              disabled={isSubmitting}
             >
               {isLogin ? "New player? Register here" : "Have account? Login here"}
             </Button>
