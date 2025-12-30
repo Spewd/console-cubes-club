@@ -5,6 +5,7 @@ import { HoldPiece } from './HoldPiece';
 import { GameStats } from './GameStats';
 import { GameControls } from './GameControls';
 import { ClearFeedback } from './ClearFeedback';
+import { LineClearParticles } from './LineClearParticles';
 import { Button } from '@/components/ui/button';
 import { Play, Pause, RotateCcw, Keyboard } from 'lucide-react';
 
@@ -47,6 +48,7 @@ export const TetrisGame = ({ playerName = "Player 1" }: TetrisGameProps) => {
           
           <div className="relative">
             <TetrisBoard board={board} currentPiece={currentPiece} ghostPosition={ghostPosition} clearEvent={clearEvent} />
+            <LineClearParticles clearEvent={clearEvent} />
             <ClearFeedback clearEvent={clearEvent} />
             
             {/* Overlay for game states */}
