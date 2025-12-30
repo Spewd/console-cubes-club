@@ -1,13 +1,39 @@
 import { Button } from '@/components/ui/button';
-import { Play, Users, Trophy, LogIn, Sparkles } from 'lucide-react';
+import { Play, Users, Trophy, LogIn, LogOut, Sparkles, User } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
+import { useAuth } from '@/hooks/useAuth';
+import { useToast } from '@/hooks/use-toast';
 
 export const MainMenu = () => {
   const navigate = useNavigate();
+  const { user, profile, signOut, loading } = useAuth();
+  const { toast } = useToast();
+
+  const handleLogout = async () => {
+    const { error } = await signOut();
+    if (error) {
+      toast({
+        title: "Error",
+        description: "Failed to log out.",
+        variant: "destructive"
+      });
+    } else {
+      toast({
+        title: "Logged Out",
+        description: "See you next time!",
+      });
+    }
+  };
 
   return (
     <div className="flex flex-col items-center justify-center min-h-[450px] gap-8 p-4 md:p-8">
       <div className="space-y-3 text-center">
+        {user && profile && (
+          <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-accent border border-border text-foreground text-sm font-medium mb-2">
+            <User className="w-4 h-4" />
+            <span>{profile.username}</span>
+          </div>
+        )}
         <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-primary/10 border border-primary/20 text-primary text-sm font-medium mb-4">
           <Sparkles className="w-4 h-4" />
           <span>Ready to play</span>
@@ -75,15 +101,28 @@ export const MainMenu = () => {
           </div>
         </div>
 
-        <Button
-          variant="outline"
-          size="lg"
-          onClick={() => navigate('/login')}
-          className="w-full justify-start h-14 text-base"
-        >
-          <LogIn className="w-5 h-5 mr-3" />
-          <span>Login / Register</span>
-        </Button>
+        {user ? (
+          <Button
+            variant="outline"
+            size="lg"
+            onClick={handleLogout}
+            className="w-full justify-start h-14 text-base"
+            disabled={loading}
+          >
+            <LogOut className="w-5 h-5 mr-3" />
+            <span>Logout</span>
+          </Button>
+        ) : (
+          <Button
+            variant="outline"
+            size="lg"
+            onClick={() => navigate('/login')}
+            className="w-full justify-start h-14 text-base"
+          >
+            <LogIn className="w-5 h-5 mr-3" />
+            <span>Login / Register</span>
+          </Button>
+        )}
       </div>
 
       <div className="mt-6 text-center">

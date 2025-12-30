@@ -1,3 +1,4 @@
+import { useEffect, useRef } from 'react';
 import { useTetris } from '@/hooks/useTetris';
 import { TetrisBoard } from './TetrisBoard';
 import { NextPiece } from './NextPiece';
@@ -8,12 +9,15 @@ import { ClearFeedback } from './ClearFeedback';
 import { LineClearParticles } from './LineClearParticles';
 import { Button } from '@/components/ui/button';
 import { Play, Pause, RotateCcw, Keyboard } from 'lucide-react';
+import { useAuth } from '@/hooks/useAuth';
+import { useToast } from '@/hooks/use-toast';
 
 interface TetrisGameProps {
   playerName?: string;
+  onGameOver?: (score: number, level: number, lines: number) => void;
 }
 
-export const TetrisGame = ({ playerName = "Player 1" }: TetrisGameProps) => {
+export const TetrisGame = ({ playerName = "Player 1", onGameOver }: TetrisGameProps) => {
   const {
     gameState,
     ghostPosition,
@@ -26,8 +30,41 @@ export const TetrisGame = ({ playerName = "Player 1" }: TetrisGameProps) => {
     hardDrop,
     holdPiece,
   } = useTetris();
+  
+  const { user, saveHighScore } = useAuth();
+  const { toast } = useToast();
+  const hasSubmittedScore = useRef(false);
 
   const { board, currentPiece, nextPiece, holdPiece: heldPiece, canHold, score, level, lines, isPlaying, isGameOver, isPaused, clearEvent } = gameState;
+
+  // Save score when game ends
+  useEffect(() => {
+    if (isGameOver && !hasSubmittedScore.current && score > 0) {
+      hasSubmittedScore.current = true;
+      
+      if (user) {
+        saveHighScore(score, level, lines).then(({ error }) => {
+          if (error) {
+            console.error('Failed to save score:', error);
+          } else {
+            toast({
+              title: "Score Saved!",
+              description: `Your score of ${score.toLocaleString()} has been saved to the leaderboard.`,
+            });
+          }
+        });
+      }
+      
+      onGameOver?.(score, level, lines);
+    }
+  }, [isGameOver, score, level, lines, user, saveHighScore, onGameOver, toast]);
+
+  // Reset submitted flag when starting a new game
+  useEffect(() => {
+    if (isPlaying && !isGameOver) {
+      hasSubmittedScore.current = false;
+    }
+  }, [isPlaying, isGameOver]);
 
   return (
     <div className="flex flex-col lg:flex-row gap-6 lg:gap-10 items-center lg:items-start justify-center p-2 md:p-4">
