@@ -81,7 +81,7 @@ export const TetrisBoard = ({ board, currentPiece, ghostPosition }: TetrisBoardP
             <div
               key={index}
               className={cn(
-                'w-full h-full transition-all duration-75',
+                'w-full h-full',
                 item.cell 
                   ? item.isGhost
                     ? cn(GHOST_COLORS[item.cell], 'rounded-[3px]')
