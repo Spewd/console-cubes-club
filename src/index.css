@@ -197,4 +197,26 @@
   .arcade-button {
     @apply tactile-button;
   }
+
+  /* Line clear animation */
+  @keyframes line-clear {
+    0% {
+      opacity: 1;
+      transform: scaleX(1);
+    }
+    50% {
+      opacity: 1;
+      transform: scaleX(1.05);
+      filter: brightness(2) saturate(1.5);
+    }
+    100% {
+      opacity: 0;
+      transform: scaleX(0);
+      filter: brightness(3) saturate(0);
+    }
+  }
+
+  .animate-line-clear {
+    animation: line-clear 0.3s ease-out forwards;
+  }
 }

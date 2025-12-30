@@ -46,7 +46,7 @@ export const TetrisGame = ({ playerName = "Player 1" }: TetrisGameProps) => {
           <div className="absolute -inset-4 bg-primary/10 rounded-3xl blur-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none" />
           
           <div className="relative">
-            <TetrisBoard board={board} currentPiece={currentPiece} ghostPosition={ghostPosition} />
+            <TetrisBoard board={board} currentPiece={currentPiece} ghostPosition={ghostPosition} clearEvent={clearEvent} />
             <ClearFeedback clearEvent={clearEvent} />
             
             {/* Overlay for game states */}

@@ -120,13 +120,19 @@ const mergePieceToBoard = (board: Board, piece: Piece): Board => {
   return newBoard;
 };
 
-const clearLines = (board: Board): { newBoard: Board; linesCleared: number } => {
+const clearLines = (board: Board): { newBoard: Board; linesCleared: number; clearedRowIndices: number[] } => {
+  const clearedRowIndices: number[] = [];
+  board.forEach((row, index) => {
+    if (row.every(cell => cell !== null)) {
+      clearedRowIndices.push(index);
+    }
+  });
   const newBoard = board.filter(row => row.some(cell => cell === null));
   const linesCleared = BOARD_HEIGHT - newBoard.length;
   while (newBoard.length < BOARD_HEIGHT) {
     newBoard.unshift(Array(BOARD_WIDTH).fill(null));
   }
-  return { newBoard, linesCleared };
+  return { newBoard, linesCleared, clearedRowIndices };
 };
 
 // T-spin detection - check if T piece is locked with 3 corners filled
@@ -265,6 +271,7 @@ export interface ClearEvent {
   points: number;
   garbageSent: number;
   timestamp: number;
+  clearedRowIndices: number[];
 }
 
 export interface GameState {
@@ -459,7 +466,7 @@ export const useTetris = () => {
   const lockPiece = useCallback((prev: GameState, piece: Piece, dropBonus: number = 0): GameState => {
     const tSpin = detectTSpin(prev.board, piece, lastActionRef.current);
     const newBoard = mergePieceToBoard(prev.board, piece);
-    const { newBoard: clearedBoard, linesCleared } = clearLines(newBoard);
+    const { newBoard: clearedBoard, linesCleared, clearedRowIndices } = clearLines(newBoard);
     
     // Check for perfect clear
     const isPerfectClear = clearedBoard.every(row => row.every(cell => cell === null));
@@ -492,6 +499,7 @@ export const useTetris = () => {
         points: scoreGain,
         garbageSent,
         timestamp: Date.now(),
+        clearedRowIndices,
       };
     }
     

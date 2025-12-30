@@ -1,10 +1,12 @@
-import { Board, Piece, TetrisBlock, BOARD_WIDTH, BOARD_HEIGHT, Position } from '@/hooks/useTetris';
+import { useState, useEffect } from 'react';
+import { Board, Piece, TetrisBlock, BOARD_WIDTH, BOARD_HEIGHT, Position, ClearEvent } from '@/hooks/useTetris';
 import { cn } from '@/lib/utils';
 
 interface TetrisBoardProps {
   board: Board;
   currentPiece: Piece | null;
   ghostPosition?: Position | null;
+  clearEvent?: ClearEvent | null;
 }
 
 const BLOCK_COLORS: Record<Exclude<TetrisBlock, null>, string> = {
@@ -29,7 +31,19 @@ const GHOST_COLORS: Record<Exclude<TetrisBlock, null>, string> = {
   G: 'border border-muted-foreground/20 bg-muted-foreground/5',
 };
 
-export const TetrisBoard = ({ board, currentPiece, ghostPosition }: TetrisBoardProps) => {
+export const TetrisBoard = ({ board, currentPiece, ghostPosition, clearEvent }: TetrisBoardProps) => {
+  const [clearingRows, setClearingRows] = useState<Set<number>>(new Set());
+
+  useEffect(() => {
+    if (clearEvent && clearEvent.clearedRowIndices.length > 0) {
+      setClearingRows(new Set(clearEvent.clearedRowIndices));
+      const timer = setTimeout(() => {
+        setClearingRows(new Set());
+      }, 300);
+      return () => clearTimeout(timer);
+    }
+  }, [clearEvent]);
+
   const displayBoard: { cell: TetrisBlock; isGhost: boolean }[][] = board.map(row => 
     row.map(cell => ({ cell, isGhost: false }))
   );
@@ -77,19 +91,25 @@ export const TetrisBoard = ({ board, currentPiece, ghostPosition }: TetrisBoardP
             height: `${BOARD_HEIGHT * 26}px`,
           }}
         >
-          {displayBoard.flat().map((item, index) => (
-            <div
-              key={index}
-              className={cn(
-                'w-full h-full',
-                item.cell 
-                  ? item.isGhost
-                    ? cn(GHOST_COLORS[item.cell], 'rounded-[3px]')
-                    : cn(BLOCK_COLORS[item.cell], 'tetris-block')
-                  : 'bg-muted/30 rounded-[2px]'
-              )}
-            />
-          ))}
+          {displayBoard.map((row, rowIndex) => 
+            row.map((item, colIndex) => {
+              const isClearing = clearingRows.has(rowIndex);
+              return (
+                <div
+                  key={`${rowIndex}-${colIndex}`}
+                  className={cn(
+                    'w-full h-full',
+                    item.cell 
+                      ? item.isGhost
+                        ? cn(GHOST_COLORS[item.cell], 'rounded-[3px]')
+                        : cn(BLOCK_COLORS[item.cell], 'tetris-block')
+                      : 'bg-muted/30 rounded-[2px]',
+                    isClearing && 'animate-line-clear'
+                  )}
+                />
+              );
+            })
+          )}
         </div>
       </div>
     </div>
