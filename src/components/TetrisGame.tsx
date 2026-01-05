@@ -32,6 +32,7 @@ export const TetrisGame = ({ playerName = "Player 1", onGameOver }: TetrisGamePr
     softDrop,
     rotate,
     rotateCCW,
+    rotate180,
     hardDrop,
     holdPiece,
   } = useTetris();
@@ -54,6 +55,7 @@ export const TetrisGame = ({ playerName = "Player 1", onGameOver }: TetrisGamePr
     onHardDrop: hardDrop,
     onRotateCW: rotate,
     onRotateCCW: rotateCCW,
+    onRotate180: rotate180,
     onHold: holdPiece,
     onPause: togglePause,
   });

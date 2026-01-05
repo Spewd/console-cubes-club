@@ -4,8 +4,9 @@ import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Slider } from '@/components/ui/slider';
 import { Label } from '@/components/ui/label';
+import { Switch } from '@/components/ui/switch';
 import { Settings, RotateCcw } from 'lucide-react';
-import { PlayerSettings as PlayerSettingsType, usePlayerSettings, KeyBindings } from '@/hooks/usePlayerSettings';
+import { PlayerSettings as PlayerSettingsType, KeyBindings, PrimaryRotation } from '@/hooks/usePlayerSettings';
 import { KeyboardMapper } from './KeyboardMapper';
 
 interface PlayerSettingsProps {
@@ -145,6 +146,31 @@ export const PlayerSettingsDialog = ({
               <p className="text-xs text-muted-foreground">
                 Soft drop speed multiplier (41 = instant)
               </p>
+            </div>
+
+            {/* Primary Rotation Direction */}
+            <div className="space-y-3">
+              <div className="flex items-center justify-between">
+                <div>
+                  <Label htmlFor="primaryRotation">Primary Rotation</Label>
+                  <p className="text-xs text-muted-foreground mt-1">
+                    Direction for the main rotate key
+                  </p>
+                </div>
+                <div className="flex items-center gap-2">
+                  <span className={`text-sm ${settings.primaryRotation === 'ccw' ? 'text-foreground' : 'text-muted-foreground'}`}>
+                    CCW
+                  </span>
+                  <Switch
+                    id="primaryRotation"
+                    checked={settings.primaryRotation === 'cw'}
+                    onCheckedChange={(checked) => updateSetting('primaryRotation', checked ? 'cw' : 'ccw')}
+                  />
+                  <span className={`text-sm ${settings.primaryRotation === 'cw' ? 'text-foreground' : 'text-muted-foreground'}`}>
+                    CW
+                  </span>
+                </div>
+              </div>
             </div>
 
             <Button variant="outline" className="w-full" onClick={resetToDefaults}>

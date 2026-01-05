@@ -675,6 +675,49 @@ export const useTetris = () => {
     });
   }, []);
 
+  // 180° rotation
+  const rotate180 = useCallback(() => {
+    setGameState(prev => {
+      if (!prev.currentPiece || prev.isPaused || !prev.isPlaying) return prev;
+      if (prev.currentPiece.type === 'O') return prev;
+      
+      // Rotate 2 times clockwise = 180°
+      let rotatedShape = prev.currentPiece.shape;
+      for (let i = 0; i < 2; i++) {
+        rotatedShape = rotateMatrix(rotatedShape);
+      }
+      const newRotationState = (prev.currentPiece.rotationState + 2) % 4;
+      
+      // Try basic position first, then simple offsets for 180
+      const offsets = [
+        { x: 0, y: 0 },
+        { x: 1, y: 0 },
+        { x: -1, y: 0 },
+        { x: 0, y: 1 },
+        { x: 0, y: -1 },
+      ];
+      
+      for (const offset of offsets) {
+        const testPiece: Piece = {
+          ...prev.currentPiece,
+          shape: rotatedShape,
+          position: {
+            x: prev.currentPiece.position.x + offset.x,
+            y: prev.currentPiece.position.y + offset.y,
+          },
+          rotationState: newRotationState,
+        };
+        
+        if (!checkCollision(prev.board, testPiece)) {
+          lastActionRef.current = 'rotate';
+          return { ...prev, currentPiece: testPiece };
+        }
+      }
+      
+      return prev;
+    });
+  }, []);
+
   return {
     gameState,
     ghostPosition,
@@ -686,6 +729,7 @@ export const useTetris = () => {
     softDrop,
     rotate,
     rotateCCW,
+    rotate180,
     hardDrop,
     holdPiece,
     addGarbageLines,

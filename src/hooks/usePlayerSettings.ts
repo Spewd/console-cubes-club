@@ -7,9 +7,12 @@ export interface KeyBindings {
   hardDrop: string;
   rotateCW: string;
   rotateCCW: string;
+  rotate180: string;
   hold: string;
   pause: string;
 }
+
+export type PrimaryRotation = 'cw' | 'ccw';
 
 export interface PlayerSettings {
   // Delayed Auto Shift - initial delay before auto-repeat starts (ms)
@@ -20,6 +23,8 @@ export interface PlayerSettings {
   dcd: number;
   // Soft Drop Factor - multiplier for soft drop speed (higher = faster)
   sdf: number | 'instant';
+  // Primary rotation direction
+  primaryRotation: PrimaryRotation;
   // Key bindings
   keyBindings: KeyBindings;
 }
@@ -31,6 +36,7 @@ const DEFAULT_KEY_BINDINGS: KeyBindings = {
   hardDrop: ' ',
   rotateCW: 'ArrowUp',
   rotateCCW: 'z',
+  rotate180: 'a',
   hold: 'c',
   pause: 'p',
 };
@@ -40,6 +46,7 @@ const DEFAULT_SETTINGS: PlayerSettings = {
   arr: 10,
   dcd: 0,
   sdf: 20,
+  primaryRotation: 'cw',
   keyBindings: DEFAULT_KEY_BINDINGS,
 };
 
