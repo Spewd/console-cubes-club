@@ -636,49 +636,44 @@ export const useTetris = () => {
     return () => clearInterval(interval);
   }, [gameState.isPlaying, gameState.isPaused, gameState.level, moveDown]);
 
-  // Keyboard controls
-  useEffect(() => {
-    const handleKeyDown = (e: KeyboardEvent) => {
-      if (!gameState.isPlaying) return;
+  // Counter-clockwise rotation
+  const rotateCCW = useCallback(() => {
+    setGameState(prev => {
+      if (!prev.currentPiece || prev.isPaused || !prev.isPlaying) return prev;
+      if (prev.currentPiece.type === 'O') return prev;
       
-      switch (e.key) {
-        case 'ArrowLeft':
-          e.preventDefault();
-          moveLeft();
-          break;
-        case 'ArrowRight':
-          e.preventDefault();
-          moveRight();
-          break;
-        case 'ArrowDown':
-          e.preventDefault();
-          softDrop();
-          break;
-        case 'ArrowUp':
-          e.preventDefault();
-          rotate();
-          break;
-        case ' ':
-          e.preventDefault();
-          hardDrop();
-          break;
-        case 'p':
-        case 'P':
-          e.preventDefault();
-          togglePause();
-          break;
-        case 'c':
-        case 'C':
-        case 'Shift':
-          e.preventDefault();
-          holdPiece();
-          break;
+      // Rotate 3 times clockwise = 1 time counter-clockwise
+      let rotatedShape = prev.currentPiece.shape;
+      for (let i = 0; i < 3; i++) {
+        rotatedShape = rotateMatrix(rotatedShape);
       }
-    };
-
-    window.addEventListener('keydown', handleKeyDown);
-    return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [gameState.isPlaying, moveLeft, moveRight, softDrop, rotate, hardDrop, togglePause, holdPiece]);
+      const newRotationState = (prev.currentPiece.rotationState + 3) % 4;
+      
+      // Get wall kick data (use reverse kicks for CCW)
+      const kickData = prev.currentPiece.type === 'I' ? WALL_KICKS.I : WALL_KICKS.JLSTZ;
+      const kickIndex = (prev.currentPiece.rotationState + 3) % 4;
+      const kicks = kickData[kickIndex].map(k => ({ x: -k.x, y: -k.y }));
+      
+      for (const kick of kicks) {
+        const testPiece: Piece = {
+          ...prev.currentPiece,
+          shape: rotatedShape,
+          position: {
+            x: prev.currentPiece.position.x + kick.x,
+            y: prev.currentPiece.position.y + kick.y,
+          },
+          rotationState: newRotationState,
+        };
+        
+        if (!checkCollision(prev.board, testPiece)) {
+          lastActionRef.current = 'rotate';
+          return { ...prev, currentPiece: testPiece };
+        }
+      }
+      
+      return prev;
+    });
+  }, []);
 
   return {
     gameState,
@@ -688,7 +683,9 @@ export const useTetris = () => {
     moveLeft,
     moveRight,
     moveDown: softDrop,
+    softDrop,
     rotate,
+    rotateCCW,
     hardDrop,
     holdPiece,
     addGarbageLines,
