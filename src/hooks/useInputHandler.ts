@@ -11,6 +11,7 @@ interface InputHandlerProps {
   onHardDrop: () => void;
   onRotateCW: () => void;
   onRotateCCW: () => void;
+  onRotate180: () => void;
   onHold: () => void;
   onPause: () => void;
 }
@@ -25,6 +26,7 @@ export const useInputHandler = ({
   onHardDrop,
   onRotateCW,
   onRotateCCW,
+  onRotate180,
   onHold,
   onPause,
 }: InputHandlerProps) => {
@@ -35,7 +37,7 @@ export const useInputHandler = ({
   const currentDirectionRef = useRef<'left' | 'right' | null>(null);
   const dasChargedRef = useRef(false);
 
-  const { das, arr, dcd, sdf, keyBindings } = settings;
+  const { das, arr, dcd, sdf, keyBindings, primaryRotation } = settings;
 
   const clearTimers = useCallback(() => {
     if (dasTimerRef.current) {
@@ -156,10 +158,13 @@ export const useInputHandler = ({
           onHardDrop();
           break;
         case 'rotateCW':
-          onRotateCW();
+          primaryRotation === 'cw' ? onRotateCW() : onRotateCCW();
           break;
         case 'rotateCCW':
-          onRotateCCW();
+          primaryRotation === 'cw' ? onRotateCCW() : onRotateCW();
+          break;
+        case 'rotate180':
+          onRotate180();
           break;
         case 'hold':
           onHold();
@@ -227,6 +232,7 @@ export const useInputHandler = ({
     isPlaying,
     isPaused,
     keyBindings,
+    primaryRotation,
     getActionForKey,
     startDAS,
     startSoftDrop,
@@ -235,6 +241,7 @@ export const useInputHandler = ({
     onHardDrop,
     onRotateCW,
     onRotateCCW,
+    onRotate180,
     onHold,
     onPause,
     clearTimers,

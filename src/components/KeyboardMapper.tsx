@@ -16,6 +16,7 @@ const ACTION_LABELS: Record<keyof KeyBindings, string> = {
   hardDrop: 'Hard Drop',
   rotateCW: 'Rotate CW',
   rotateCCW: 'Rotate CCW',
+  rotate180: 'Rotate 180°',
   hold: 'Hold',
   pause: 'Pause',
 };
