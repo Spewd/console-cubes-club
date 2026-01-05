@@ -1,5 +1,7 @@
 import { useEffect, useRef } from 'react';
 import { useTetris } from '@/hooks/useTetris';
+import { usePlayerSettings } from '@/hooks/usePlayerSettings';
+import { useInputHandler } from '@/hooks/useInputHandler';
 import { TetrisBoard } from './TetrisBoard';
 import { NextPiece } from './NextPiece';
 import { HoldPiece } from './HoldPiece';
@@ -7,6 +9,7 @@ import { GameStats } from './GameStats';
 import { GameControls } from './GameControls';
 import { ClearFeedback } from './ClearFeedback';
 import { LineClearParticles } from './LineClearParticles';
+import { PlayerSettingsDialog } from './PlayerSettings';
 import { Button } from '@/components/ui/button';
 import { Play, Pause, RotateCcw, Keyboard } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
@@ -26,16 +29,34 @@ export const TetrisGame = ({ playerName = "Player 1", onGameOver }: TetrisGamePr
     moveLeft,
     moveRight,
     moveDown,
+    softDrop,
     rotate,
+    rotateCCW,
     hardDrop,
     holdPiece,
   } = useTetris();
   
+  const { settings, updateSetting, updateKeyBinding, resetToDefaults, applyPreset } = usePlayerSettings();
   const { user, saveHighScore } = useAuth();
   const { toast } = useToast();
   const hasSubmittedScore = useRef(false);
 
   const { board, currentPiece, nextPiece, holdPiece: heldPiece, canHold, score, level, lines, isPlaying, isGameOver, isPaused, clearEvent } = gameState;
+
+  // Use the input handler with player settings
+  useInputHandler({
+    settings,
+    isPlaying,
+    isPaused,
+    onMoveLeft: moveLeft,
+    onMoveRight: moveRight,
+    onSoftDrop: softDrop,
+    onHardDrop: hardDrop,
+    onRotateCW: rotate,
+    onRotateCCW: rotateCCW,
+    onHold: holdPiece,
+    onPause: togglePause,
+  });
 
   // Save score when game ends
   useEffect(() => {
@@ -66,12 +87,30 @@ export const TetrisGame = ({ playerName = "Player 1", onGameOver }: TetrisGamePr
     }
   }, [isPlaying, isGameOver]);
 
+  // Format key for display
+  const formatKey = (key: string): string => {
+    if (key === ' ') return 'Space';
+    if (key === 'ArrowUp') return '↑';
+    if (key === 'ArrowDown') return '↓';
+    if (key === 'ArrowLeft') return '←';
+    if (key === 'ArrowRight') return '→';
+    if (key.length === 1) return key.toUpperCase();
+    return key;
+  };
+
   return (
     <div className="flex flex-col lg:flex-row gap-6 lg:gap-10 items-center lg:items-start justify-center p-2 md:p-4">
       {/* Left Panel - Hold & Stats */}
       <div className="hidden lg:flex flex-col gap-4 w-[160px]">
-        <div className="stats-panel p-3 text-center">
+        <div className="stats-panel p-3 text-center flex items-center justify-between">
           <span className="text-xs font-semibold tracking-wider text-muted-foreground uppercase">{playerName}</span>
+          <PlayerSettingsDialog
+            settings={settings}
+            updateSetting={updateSetting}
+            updateKeyBinding={updateKeyBinding}
+            resetToDefaults={resetToDefaults}
+            applyPreset={applyPreset}
+          />
         </div>
         <HoldPiece piece={heldPiece} canHold={canHold} />
         <GameStats score={score} level={level} lines={lines} />
@@ -155,27 +194,45 @@ export const TetrisGame = ({ playerName = "Player 1", onGameOver }: TetrisGamePr
           </div>
           <div className="text-xs text-muted-foreground space-y-2.5">
             <div className="flex justify-between items-center">
-              <span className="px-2 py-0.5 rounded bg-secondary text-foreground font-mono text-[10px]">← →</span>
+              <span className="px-2 py-0.5 rounded bg-secondary text-foreground font-mono text-[10px]">
+                {formatKey(settings.keyBindings.moveLeft)} {formatKey(settings.keyBindings.moveRight)}
+              </span>
               <span>Move</span>
             </div>
             <div className="flex justify-between items-center">
-              <span className="px-2 py-0.5 rounded bg-secondary text-foreground font-mono text-[10px]">↑</span>
+              <span className="px-2 py-0.5 rounded bg-secondary text-foreground font-mono text-[10px]">
+                {formatKey(settings.keyBindings.rotateCW)}
+              </span>
               <span>Rotate</span>
             </div>
             <div className="flex justify-between items-center">
-              <span className="px-2 py-0.5 rounded bg-secondary text-foreground font-mono text-[10px]">↓</span>
+              <span className="px-2 py-0.5 rounded bg-secondary text-foreground font-mono text-[10px]">
+                {formatKey(settings.keyBindings.rotateCCW)}
+              </span>
+              <span>Rotate CCW</span>
+            </div>
+            <div className="flex justify-between items-center">
+              <span className="px-2 py-0.5 rounded bg-secondary text-foreground font-mono text-[10px]">
+                {formatKey(settings.keyBindings.softDrop)}
+              </span>
               <span>Soft Drop</span>
             </div>
             <div className="flex justify-between items-center">
-              <span className="px-2 py-0.5 rounded bg-secondary text-foreground font-mono text-[10px]">Space</span>
+              <span className="px-2 py-0.5 rounded bg-secondary text-foreground font-mono text-[10px]">
+                {formatKey(settings.keyBindings.hardDrop)}
+              </span>
               <span>Hard Drop</span>
             </div>
             <div className="flex justify-between items-center">
-              <span className="px-2 py-0.5 rounded bg-secondary text-foreground font-mono text-[10px]">C</span>
+              <span className="px-2 py-0.5 rounded bg-secondary text-foreground font-mono text-[10px]">
+                {formatKey(settings.keyBindings.hold)}
+              </span>
               <span>Hold</span>
             </div>
             <div className="flex justify-between items-center">
-              <span className="px-2 py-0.5 rounded bg-secondary text-foreground font-mono text-[10px]">P</span>
+              <span className="px-2 py-0.5 rounded bg-secondary text-foreground font-mono text-[10px]">
+                {formatKey(settings.keyBindings.pause)}
+              </span>
               <span>Pause</span>
             </div>
           </div>
@@ -203,7 +260,18 @@ export const TetrisGame = ({ playerName = "Player 1", onGameOver }: TetrisGamePr
             <NextPiece piece={nextPiece} />
           </div>
         </div>
-        <GameStats score={score} level={level} lines={lines} />
+        <div className="flex items-center gap-2">
+          <div className="flex-1">
+            <GameStats score={score} level={level} lines={lines} />
+          </div>
+          <PlayerSettingsDialog
+            settings={settings}
+            updateSetting={updateSetting}
+            updateKeyBinding={updateKeyBinding}
+            resetToDefaults={resetToDefaults}
+            applyPreset={applyPreset}
+          />
+        </div>
         <GameControls
           onMoveLeft={moveLeft}
           onMoveRight={moveRight}

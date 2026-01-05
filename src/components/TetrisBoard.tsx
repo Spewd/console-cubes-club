@@ -80,15 +80,21 @@ export const TetrisBoard = ({ board, currentPiece, ghostPosition, clearEvent }: 
     }
   }
 
+  const CELL_SIZE = 24;
+  const GAP_SIZE = 2;
+  const totalWidth = BOARD_WIDTH * CELL_SIZE + (BOARD_WIDTH - 1) * GAP_SIZE;
+  const totalHeight = BOARD_HEIGHT * CELL_SIZE + (BOARD_HEIGHT - 1) * GAP_SIZE;
+
   return (
     <div className="game-board-border p-1.5">
       <div className="game-board-container p-2">
         <div 
-          className="grid gap-[2px]"
+          className="grid"
           style={{ 
-            gridTemplateColumns: `repeat(${BOARD_WIDTH}, minmax(0, 1fr))`,
-            width: `${BOARD_WIDTH * 26}px`,
-            height: `${BOARD_HEIGHT * 26}px`,
+            gridTemplateColumns: `repeat(${BOARD_WIDTH}, ${CELL_SIZE}px)`,
+            gap: `${GAP_SIZE}px`,
+            width: `${totalWidth}px`,
+            height: `${totalHeight}px`,
           }}
         >
           {displayBoard.map((row, rowIndex) => 
@@ -97,8 +103,8 @@ export const TetrisBoard = ({ board, currentPiece, ghostPosition, clearEvent }: 
               return (
                 <div
                   key={`${rowIndex}-${colIndex}`}
+                  style={{ width: CELL_SIZE, height: CELL_SIZE }}
                   className={cn(
-                    'w-full h-full',
                     item.cell 
                       ? item.isGhost
                         ? cn(GHOST_COLORS[item.cell], 'rounded-[3px]')
