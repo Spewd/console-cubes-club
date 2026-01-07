@@ -1,1 +1,4 @@
 project_id = "ggozoqqhzamnrfacmjgl"
+
+[functions.db-proxy]
+verify_jwt = false

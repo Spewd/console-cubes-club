@@ -1,12 +1,14 @@
 import { Button } from '@/components/ui/button';
-import { Play, Users, Trophy, LogIn, LogOut, Sparkles, User } from 'lucide-react';
+import { Play, Users, Trophy, LogIn, LogOut, Sparkles, User, Settings } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
+import { useAdminAuth } from '@/hooks/useAdminAuth';
 import { useToast } from '@/hooks/use-toast';
 
 export const MainMenu = () => {
   const navigate = useNavigate();
   const { user, profile, signOut, loading } = useAuth();
+  const { isAdmin } = useAdminAuth();
   const { toast } = useToast();
 
   const handleLogout = async () => {
@@ -102,16 +104,29 @@ export const MainMenu = () => {
         </div>
 
         {user ? (
-          <Button
-            variant="outline"
-            size="lg"
-            onClick={handleLogout}
-            className="w-full justify-start h-14 text-base"
-            disabled={loading}
-          >
-            <LogOut className="w-5 h-5 mr-3" />
-            <span>Logout</span>
-          </Button>
+          <>
+            {isAdmin && (
+              <Button
+                variant="outline"
+                size="lg"
+                onClick={() => navigate('/admin')}
+                className="w-full justify-start h-14 text-base"
+              >
+                <Settings className="w-5 h-5 mr-3" />
+                <span>Admin Area</span>
+              </Button>
+            )}
+            <Button
+              variant="outline"
+              size="lg"
+              onClick={handleLogout}
+              className="w-full justify-start h-14 text-base"
+              disabled={loading}
+            >
+              <LogOut className="w-5 h-5 mr-3" />
+              <span>Logout</span>
+            </Button>
+          </>
         ) : (
           <Button
             variant="outline"
