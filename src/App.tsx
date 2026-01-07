@@ -8,6 +8,7 @@ import Game from "./pages/Game";
 import Login from "./pages/Login";
 import Multiplayer from "./pages/Multiplayer";
 import Leaderboard from "./pages/Leaderboard";
+import Admin from "./pages/Admin";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -24,6 +25,7 @@ const App = () => (
           <Route path="/login" element={<Login />} />
           <Route path="/multiplayer" element={<Multiplayer />} />
           <Route path="/leaderboard" element={<Leaderboard />} />
+          <Route path="/admin" element={<Admin />} />
           <Route path="*" element={<NotFound />} />
         </Routes>
       </BrowserRouter>
