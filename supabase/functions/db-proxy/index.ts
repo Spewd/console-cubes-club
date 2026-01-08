@@ -61,7 +61,7 @@ async function getDbConfig(supabaseAdmin: SupabaseAdmin): Promise<DbConfig | nul
 
   return {
     host,
-    port: configMap.get('db_port') || '5432',
+    port: configMap.get('db_port') || '3306', // MySQL default port
     database,
     username,
     password,
@@ -69,26 +69,41 @@ async function getDbConfig(supabaseAdmin: SupabaseAdmin): Promise<DbConfig | nul
   };
 }
 
-// Execute query on external PostgreSQL using pg driver
+// Escape string values for MySQL
+function escapeValue(value: unknown): string {
+  if (value === null || value === undefined) {
+    return 'NULL';
+  }
+  if (typeof value === 'number') {
+    return String(value);
+  }
+  if (typeof value === 'boolean') {
+    return value ? '1' : '0';
+  }
+  // Escape single quotes by doubling them
+  const str = String(value).replace(/'/g, "''").replace(/\\/g, '\\\\');
+  return `'${str}'`;
+}
+
+// Execute query on external MySQL database
 async function executeExternalQuery(config: DbConfig, operation: string, params: RequestBody) {
-  // Dynamic import of postgres driver
-  const postgres = (await import('https://deno.land/x/postgresjs@v3.4.4/mod.js')).default;
+  // Dynamic import of MySQL driver for Deno
+  const { Client } = await import('https://deno.land/x/mysql@v2.12.1/mod.ts');
   
-  const sql = postgres({
-    host: config.host,
+  const client = await new Client().connect({
+    hostname: config.host,
     port: parseInt(config.port),
-    database: config.database,
+    db: config.database,
     username: config.username,
     password: config.password,
-    ssl: config.ssl ? 'require' : false,
   });
 
   try {
     switch (operation) {
       case 'test-connection': {
-        await sql`SELECT 1 as connected`;
-        await sql.end();
-        return { success: true, message: 'Connection successful!' };
+        await client.query('SELECT 1 as connected');
+        await client.close();
+        return { success: true, message: 'MySQL connection successful!' };
       }
       
       case 'select': {
@@ -97,60 +112,79 @@ async function executeExternalQuery(config: DbConfig, operation: string, params:
         const limit = params.limit || 100;
         const order = params.order;
         
-        let query = `SELECT ${columns} FROM ${table}`;
+        let query = `SELECT ${columns} FROM \`${table}\``;
         
         if (params.filters && Object.keys(params.filters).length > 0) {
           const conditions = Object.entries(params.filters)
-            .map(([key, value]) => `${key} = '${value}'`)
+            .map(([key, value]) => `\`${key}\` = ${escapeValue(value)}`)
             .join(' AND ');
           query += ` WHERE ${conditions}`;
         }
         
         if (order) {
-          query += ` ORDER BY ${order.column} ${order.ascending ? 'ASC' : 'DESC'}`;
+          query += ` ORDER BY \`${order.column}\` ${order.ascending ? 'ASC' : 'DESC'}`;
         }
         
         query += ` LIMIT ${limit}`;
         
-        const result = await sql.unsafe(query);
-        await sql.end();
+        console.log('MySQL SELECT query:', query);
+        const result = await client.query(query);
+        await client.close();
         return { data: result, error: null };
       }
       
       case 'insert': {
         const table = params.table!;
         const data = params.data as Record<string, unknown>;
-        const keys = Object.keys(data);
-        const values = Object.values(data).map(v => 
-          typeof v === 'string' ? `'${v}'` : v
-        );
+        const keys = Object.keys(data).map(k => `\`${k}\``);
+        const values = Object.values(data).map(v => escapeValue(v));
         
-        const query = `INSERT INTO ${table} (${keys.join(', ')}) VALUES (${values.join(', ')}) RETURNING *`;
-        const result = await sql.unsafe(query);
-        await sql.end();
-        return { data: result[0], error: null };
+        const query = `INSERT INTO \`${table}\` (${keys.join(', ')}) VALUES (${values.join(', ')})`;
+        console.log('MySQL INSERT query:', query);
+        
+        const result = await client.execute(query);
+        
+        // Fetch the inserted row using LAST_INSERT_ID()
+        let insertedData = null;
+        if (result.lastInsertId) {
+          const selectResult = await client.query(`SELECT * FROM \`${table}\` WHERE id = ${result.lastInsertId}`);
+          insertedData = selectResult[0] || null;
+        }
+        
+        await client.close();
+        return { data: insertedData, error: null };
       }
       
       case 'update': {
         const table = params.table!;
         const data = params.data as Record<string, unknown>;
         const sets = Object.entries(data)
-          .map(([key, value]) => `${key} = ${typeof value === 'string' ? `'${value}'` : value}`)
+          .map(([key, value]) => `\`${key}\` = ${escapeValue(value)}`)
           .join(', ');
         
-        let query = `UPDATE ${table} SET ${sets}`;
+        let query = `UPDATE \`${table}\` SET ${sets}`;
         
         if (params.filters && Object.keys(params.filters).length > 0) {
           const conditions = Object.entries(params.filters)
-            .map(([key, value]) => `${key} = '${value}'`)
+            .map(([key, value]) => `\`${key}\` = ${escapeValue(value)}`)
             .join(' AND ');
           query += ` WHERE ${conditions}`;
         }
         
-        query += ' RETURNING *';
+        console.log('MySQL UPDATE query:', query);
+        await client.execute(query);
         
-        const result = await sql.unsafe(query);
-        await sql.end();
+        // Fetch updated rows
+        let selectQuery = `SELECT * FROM \`${table}\``;
+        if (params.filters && Object.keys(params.filters).length > 0) {
+          const conditions = Object.entries(params.filters)
+            .map(([key, value]) => `\`${key}\` = ${escapeValue(value)}`)
+            .join(' AND ');
+          selectQuery += ` WHERE ${conditions}`;
+        }
+        const result = await client.query(selectQuery);
+        
+        await client.close();
         return { data: result, error: null };
       }
       
@@ -158,27 +192,35 @@ async function executeExternalQuery(config: DbConfig, operation: string, params:
         const table = params.table!;
         
         if (!params.filters || Object.keys(params.filters).length === 0) {
-          await sql.end();
+          await client.close();
           return { error: 'Delete requires filters for safety' };
         }
         
+        // Fetch rows before deleting (MySQL doesn't have RETURNING)
         const conditions = Object.entries(params.filters)
-          .map(([key, value]) => `${key} = '${value}'`)
+          .map(([key, value]) => `\`${key}\` = ${escapeValue(value)}`)
           .join(' AND ');
         
-        const query = `DELETE FROM ${table} WHERE ${conditions} RETURNING *`;
-        const result = await sql.unsafe(query);
-        await sql.end();
-        return { data: result, error: null };
+        const selectQuery = `SELECT * FROM \`${table}\` WHERE ${conditions}`;
+        const toDelete = await client.query(selectQuery);
+        
+        const query = `DELETE FROM \`${table}\` WHERE ${conditions}`;
+        console.log('MySQL DELETE query:', query);
+        await client.execute(query);
+        
+        await client.close();
+        return { data: toDelete, error: null };
       }
       
       default:
-        await sql.end();
+        await client.close();
         return { error: 'Unknown operation' };
     }
   } catch (err) {
-    console.error('External DB error:', err);
-    await sql.end();
+    console.error('MySQL DB error:', err);
+    try {
+      await client.close();
+    } catch (_) { /* ignore close errors */ }
     return { error: (err as Error).message };
   }
 }
@@ -223,8 +265,8 @@ Deno.serve(async (req) => {
     const dbConfig = await getDbConfig(supabaseAdmin);
 
     if (dbConfig) {
-      // Use external database
-      console.log(`Using external DB: ${dbConfig.host}/${dbConfig.database}`);
+      // Use external MySQL database
+      console.log(`Using external MySQL: ${dbConfig.host}/${dbConfig.database}`);
       const result = await executeExternalQuery(dbConfig, operation, body);
       return new Response(
         JSON.stringify(result),
